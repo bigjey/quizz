@@ -9,6 +9,12 @@ const app = express();
 const server = createServer(app);
 const io = socketio(server);
 
+interface Idisconnections {
+  [pId: string]: NodeJS.Timeout
+};
+
+const _disconnections: Idisconnections = {};
+
 function updatePlayers() {
   io.emit(
     "players",
@@ -48,7 +54,6 @@ io.on("connection", function(socket) {
 
   socket.on("new-player", (p: NewPlayer) => {
     Player.Players[p.id] = new Player(socket, p);
-
     const game = gameByPlayer(p.id);
 
     if (game) {
@@ -56,15 +61,41 @@ io.on("connection", function(socket) {
       socket.emit("joined-game", game.id);
     }
 
+    if (_disconnections[p.id]) {
+      console.log(`player ${p.id} has reconnected back`);
+
+      clearTimeout(_disconnections[p.id]);
+      delete _disconnections[p.id];
+      
+      game.removeDisconnectedPlayer(p.id);
+    } else {
+      console.log(`new playered with id ${p.id} joined the game!`);
+    }
+
     updatePlayers();
   });
 
   socket.on("disconnect", () => {
+    // onPlayerDisconnect
     const p = playerBySocket(socket.id);
 
     if (!p) {
       return;
     }
+    
+    const game = gameByPlayer(p.id);
+    
+    const timerID = setTimeout(() => {
+      console.log(`player ${p.id} was disconnected from game`);
+
+      clearTimeout(_disconnections[p.id]);
+      delete _disconnections[p.id];
+
+      game.removePlayerFromGame(p.id);
+    }, 10000);
+    
+    _disconnections[p.id] = timerID;
+    game.addDisconnectedPlayer(p.id);
 
     delete Player.Players[p.id];
     updatePlayers();
