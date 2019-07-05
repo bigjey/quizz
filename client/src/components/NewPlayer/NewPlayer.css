@@ -1,0 +1,15 @@
+.NewPlayer {
+  padding: 20px;
+  display: flex;
+}
+
+.NewPlayer--input {
+  display: block;
+  padding: 8px;
+}
+
+.NewPlayer--button {
+  display: block;
+  padding: 8px;
+  border: none;
+}

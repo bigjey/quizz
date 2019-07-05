@@ -1,0 +1,1 @@
+export { NewPlayer } from './NewPlayer';
