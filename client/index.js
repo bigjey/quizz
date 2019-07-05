@@ -83,6 +83,7 @@ socket.on("joined-game", (gameId) => {
 socket.on("game-info", (game) => {
   $("#gameId").html(game.id);
   $("#gameInfo").html(JSON.stringify(game.players));
+  $("#disconnectedPlayersList").html(JSON.stringify(game.disconnectedPlayers));
   $("#question").html(JSON.stringify(game.question, null, 2));
 });
 

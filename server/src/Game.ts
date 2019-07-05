@@ -66,7 +66,7 @@ export class Game {
   io: Server;
   id: string = null;
   players: Set<string> = new Set();
-
+  disconnectedPlayers: Set<string> = new Set();
   questions: Question[] = questions;
   currentQuestion: number = 0;
 
@@ -95,10 +95,30 @@ export class Game {
     this.updateGameInfo();
   }
 
+  addDisconnectedPlayer(id: string) {
+    this.disconnectedPlayers.add(id);
+
+    this.updateGameInfo();
+  }
+
+  removeDisconnectedPlayer(id: string) {
+    this.disconnectedPlayers.delete(id);
+
+    this.updateGameInfo();
+  } 
+
+  removePlayerFromGame(id: string) {
+    this.disconnectedPlayers.delete(id);
+    this.players.delete(id);
+
+    this.updateGameInfo();
+  }
+
   updateGameInfo() {
     this.io.to(this.id).emit("game-info", {
       id: this.id,
       players: Array.from(this.players),
+      disconnectedPlayers: Array.from(this.disconnectedPlayers),
       question: this.questions[this.currentQuestion]
     });
   }
