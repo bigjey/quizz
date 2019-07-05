@@ -5,15 +5,15 @@ import path from "path";
 import { Player, NewPlayer } from "./Player";
 import { Game } from "./Game";
 
-const app = express();
-const server = createServer(app);
-const io = socketio(server);
-
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout
 };
 
+const app = express();
+const server = createServer(app);
+const io = socketio(server);
 const _disconnections: Idisconnections = {};
+const RECONNECTION_TIME_LIMIT: number = 10000;
 
 function updatePlayers() {
   io.emit(
@@ -88,14 +88,15 @@ io.on("connection", function(socket) {
     const timerID = setTimeout(() => {
       console.log(`player ${p.id} was disconnected from game`);
 
-      clearTimeout(_disconnections[p.id]);
       delete _disconnections[p.id];
-
       game.removePlayerFromGame(p.id);
-    }, 10000);
+    }, RECONNECTION_TIME_LIMIT);
     
     _disconnections[p.id] = timerID;
-    game.addDisconnectedPlayer(p.id);
+
+    if (game.players.has(p.id)) {
+      game.addDisconnectedPlayer(p.id);
+    }
 
     delete Player.Players[p.id];
     updatePlayers();
