@@ -43,10 +43,10 @@ function gameByPlayer(id: string) {
   return Object.values(Game.Games).find((g: Game) => g.players.has(id));
 }
 
-app.use('/client', express.static(path.resolve(__dirname, '../../client')));
+app.use('/', express.static(path.resolve(__dirname, '../../client/dist')));
 
 app.use('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../../client/index.html'));
+  res.sendFile(path.resolve(__dirname, '../../client/dist/index.html'));
 });
 
 io.on('connection', function(socket) {
