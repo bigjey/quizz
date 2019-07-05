@@ -85,19 +85,17 @@ io.on("connection", function(socket) {
 
     const game = gameByPlayer(p.id);
 
-    if (!game) {
-      return ;
+    if (game) {
+      const timerID = setTimeout(() => {
+        console.log(`player ${p.id} was disconnected from game`);
+        
+        delete _disconnections[p.id];
+        game.removePlayerFromGame(p.id);
+      }, RECONNECTION_TIME_LIMIT);
+      
+      _disconnections[p.id] = timerID;
+      game.addDisconnectedPlayer(p.id);
     } 
-    
-    const timerID = setTimeout(() => {
-      console.log(`player ${p.id} was disconnected from game`);
-
-      delete _disconnections[p.id];
-      game.removePlayerFromGame(p.id);
-    }, RECONNECTION_TIME_LIMIT);
-    
-    _disconnections[p.id] = timerID;
-    game.addDisconnectedPlayer(p.id);
 
     delete Player.Players[p.id];
     updatePlayers();
