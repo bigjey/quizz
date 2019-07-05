@@ -1,5 +1,5 @@
-import { Players, Player } from "./Player";
-import { Server, Socket } from "socket.io";
+import { Players, Player } from './Player';
+import { Server, Socket } from 'socket.io';
 
 interface Option {
   text: string;
@@ -13,47 +13,47 @@ interface Question {
 
 const questions = [
   {
-    text: "Are you bored?",
+    text: 'Are you bored?',
     options: [
       {
-        text: "Ofc",
-        correct: false
+        text: 'Ofc',
+        correct: false,
       },
       {
-        text: "Ofc no",
-        correct: false
+        text: 'Ofc no',
+        correct: false,
       },
       {
-        text: "Yes",
-        correct: false
+        text: 'Yes',
+        correct: false,
       },
       {
-        text: "Da",
-        correct: true
-      }
-    ]
+        text: 'Da',
+        correct: true,
+      },
+    ],
   },
   {
-    text: "Will you ever do it again?",
+    text: 'Will you ever do it again?',
     options: [
       {
-        text: "Ofc",
-        correct: false
+        text: 'Ofc',
+        correct: false,
       },
       {
-        text: "Ofc no",
-        correct: true
+        text: 'Ofc no',
+        correct: true,
       },
       {
-        text: "Yes",
-        correct: false
+        text: 'Yes',
+        correct: false,
       },
       {
-        text: "Da",
-        correct: false
-      }
-    ]
-  }
+        text: 'Da',
+        correct: false,
+      },
+    ],
+  },
 ];
 
 export class Game {
@@ -105,7 +105,7 @@ export class Game {
     this.disconnectedPlayers.delete(id);
 
     this.updateGameInfo();
-  } 
+  }
 
   removePlayerFromGame(id: string) {
     this.disconnectedPlayers.delete(id);
@@ -115,11 +115,11 @@ export class Game {
   }
 
   updateGameInfo() {
-    this.io.to(this.id).emit("game-info", {
+    this.io.to(this.id).emit('game-info', {
       id: this.id,
       players: Array.from(this.players),
       disconnectedPlayers: Array.from(this.disconnectedPlayers),
-      question: this.questions[this.currentQuestion]
+      question: this.questions[this.currentQuestion],
     });
   }
 }
