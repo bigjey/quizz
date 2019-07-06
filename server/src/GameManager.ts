@@ -35,7 +35,9 @@ function gameByPlayer(id: string) {
 }
 
 export const addSocketEvents = (server: any) => {
-  const io = SocketServer(server);
+  const io = SocketServer(server, {
+    path: '/socket',
+  });
 
   function updatePlayers() {
     io.emit(

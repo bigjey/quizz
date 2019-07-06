@@ -2,8 +2,9 @@ import { createServer } from 'http';
 
 import { app } from './app';
 import { addSocketEvents } from './GameManager';
+import { DEV_SERVER_PORT } from '../../shared/constants';
 
-const PORT = 3334;
+const PORT = process.env.NODE_ENV === 'production' ? 3334 : DEV_SERVER_PORT;
 const server = createServer(app);
 
 addSocketEvents(server);
