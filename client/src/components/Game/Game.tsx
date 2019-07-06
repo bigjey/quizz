@@ -2,7 +2,7 @@ import * as React from 'react';
 import { socket } from '../../socket';
 
 import { LEAVE_GAME } from '../../../../shared/client-events';
-import { GAME_INFO } from '../../../../shared/server-events';
+import { GAME_INFO, PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 
 export const Game = () => {
@@ -13,10 +13,17 @@ export const Game = () => {
     const onGameInfo = gameData => {
       setGameInfo(gameData);
     };
+
+    const onPlayerLeft = message => {
+      console.log(message);
+    };
+
     socket.on(GAME_INFO, onGameInfo);
+    socket.on(PLAYER_LEFT, onPlayerLeft);
 
     return () => {
       socket.off(GAME_INFO, onGameInfo);
+      socket.off(PLAYER_LEFT, onPlayerLeft);
     };
   }, []);
 

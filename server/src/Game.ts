@@ -1,7 +1,7 @@
 import { Players, Player } from './Player';
 import { Server, Socket } from 'socket.io';
 
-import { GAME_INFO } from './../../shared/server-events';
+import { GAME_INFO, PLAYER_LEFT } from './../../shared/server-events';
 
 interface Option {
   text: string;
@@ -112,7 +112,15 @@ export class Game {
   removePlayerFromGame(id: string) {
     this.disconnectedPlayers.delete(id);
     this.players.delete(id);
-    
+
+    const player = Player.Players[id];
+
+    if (player) {
+      this.io.to(this.id).emit(PLAYER_LEFT, {
+        message: `player with nick ${this.addPlayer.name} has left the game`,
+      });
+    }
+
     this.updateGameInfo();
   }
 

@@ -1,18 +1,20 @@
+import { GAME_INFO } from './../../shared/server-events';
 import SocketServer, { Server } from 'socket.io';
 
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
 
-import { 
-  NEW_PLAYER, 
-  JOIN_GAME, 
-  NEW_GAME, 
-  LEAVE_GAME 
+import {
+  NEW_PLAYER,
+  JOIN_GAME,
+  NEW_GAME,
+  LEAVE_GAME,
 } from '../../shared/client-events';
 import {
   JOINED_GAME,
   GAMES_DATA,
   PLAYERS_DATA,
+  PLAYER_LEFT,
 } from '../../shared/server-events';
 
 interface Idisconnections {
@@ -93,15 +95,15 @@ export const addSocketEvents = (server: any) => {
         const timerID = setTimeout(() => {
           console.log(`player ${p.id} was disconnected from game`);
 
-          delete _disconnections[p.id];
           game.removePlayerFromGame(p.id);
+
+          delete _disconnections[p.id];
+          delete Player.Players[p.id];
         }, RECONNECTION_TIME_LIMIT);
 
         _disconnections[p.id] = timerID;
         game.addDisconnectedPlayer(p.id);
       }
-
-      delete Player.Players[p.id];
       updatePlayers();
     });
 
@@ -135,7 +137,7 @@ export const addSocketEvents = (server: any) => {
     socket.on(LEAVE_GAME, id => {
       const game = Game.Games[id];
       const player = playerBySocket(socket.id);
-      
+
       if (!game || !player) {
         return;
       }
