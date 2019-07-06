@@ -5,6 +5,13 @@ import path from 'path';
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
 
+import { NEW_PLAYER, JOIN_GAME, NEW_GAME } from '../../shared/client-events';
+import {
+  JOINED_GAME,
+  GAMES_DATA,
+  PLAYERS_DATA,
+} from '../../shared/server-events';
+
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
 }
@@ -17,7 +24,7 @@ const RECONNECTION_TIME_LIMIT: number = 10000;
 
 function updatePlayers() {
   io.emit(
-    'players',
+    PLAYERS_DATA,
     Object.values(Player.Players).map((p: Player) => {
       return p.name;
     })
@@ -26,7 +33,7 @@ function updatePlayers() {
 
 function updateGames() {
   io.emit(
-    'games',
+    GAMES_DATA,
     Object.values(Game.Games).map((g: Game) => {
       return g.id;
     })
@@ -52,13 +59,13 @@ app.use('*', (req, res) => {
 io.on('connection', function(socket) {
   updateGames();
 
-  socket.on('new-player', (p: NewPlayer) => {
+  socket.on(NEW_PLAYER, (p: NewPlayer) => {
     Player.Players[p.id] = new Player(socket, p);
     const game = gameByPlayer(p.id);
 
     if (game) {
       game.addPlayer(p.id, socket);
-      socket.emit('joined-game', game.id);
+      socket.emit(JOINED_GAME, game.id);
     }
 
     if (_disconnections[p.id]) {
@@ -101,7 +108,7 @@ io.on('connection', function(socket) {
     updatePlayers();
   });
 
-  socket.on('new-game', () => {
+  socket.on(NEW_GAME, () => {
     const p = playerBySocket(socket.id);
     if (!p) {
       return;
@@ -113,10 +120,10 @@ io.on('connection', function(socket) {
 
     updateGames();
 
-    socket.emit('joined-game', game.id);
+    socket.emit(JOINED_GAME, game.id);
   });
 
-  socket.on('join-game', id => {
+  socket.on(JOIN_GAME, id => {
     const game = Game.Games[id];
     const player = playerBySocket(socket.id);
 
@@ -125,7 +132,7 @@ io.on('connection', function(socket) {
     }
 
     game.addPlayer(player.id, socket);
-    socket.emit('joined-game', game.id);
+    socket.emit(JOINED_GAME, game.id);
   });
 });
 

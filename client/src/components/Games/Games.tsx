@@ -2,6 +2,8 @@ import * as React from 'react';
 
 import { socket } from '../../socket';
 import { useAppState } from '../../hooks/useAppState';
+import { NEW_GAME, JOIN_GAME } from '../../../../shared/client-events';
+import { GAMES_DATA } from '../../../../shared/server-events';
 
 export const Games = () => {
   const { appState } = useAppState();
@@ -10,14 +12,14 @@ export const Games = () => {
   React.useEffect(() => {
     if (appState.gameId) return;
 
-    const onGamesUpdate = (games) => {
+    const onGamesUpdate = games => {
       setGames(games);
     };
 
-    socket.on('games', onGamesUpdate);
+    socket.on(GAMES_DATA, onGamesUpdate);
 
     return () => {
-      socket.off('games', onGamesUpdate);
+      socket.off(GAMES_DATA, onGamesUpdate);
     };
   }, [appState.gameId]);
 
@@ -30,19 +32,19 @@ export const Games = () => {
       <div>
         <button
           onClick={() => {
-            socket.emit('new-game');
+            socket.emit(NEW_GAME);
           }}
         >
           New Game
         </button>
       </div>
       <div>
-        {games.map((g) => (
+        {games.map(g => (
           <div key={g}>
             {g}{' '}
             <button
               onClick={() => {
-                socket.emit('join-game', g);
+                socket.emit(JOIN_GAME, g);
               }}
             >
               Join

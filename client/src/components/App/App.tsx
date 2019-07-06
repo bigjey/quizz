@@ -7,6 +7,8 @@ import { Games } from '../Games';
 import { Game } from '../Game';
 
 import { socket } from '../../socket';
+import { NEW_PLAYER } from '../../../../shared/client-events';
+import { JOINED_GAME } from '../../../../shared/server-events';
 
 export const App = () => {
   const { appState, setAppState } = useAppState();
@@ -15,25 +17,25 @@ export const App = () => {
 
   React.useEffect(() => {
     if (playerName && playerId) {
-      socket.emit('new-player', {
+      socket.emit(NEW_PLAYER, {
         id: playerId,
-        name: playerName
+        name: playerName,
       });
     }
   }, [playerName, playerId]);
 
   React.useEffect(() => {
-    const onJoinedGame = (gameId) => {
-      setAppState((state) => ({
+    const onJoinedGame = gameId => {
+      setAppState(state => ({
         ...state,
-        gameId
+        gameId,
       }));
     };
 
-    socket.on('joined-game', onJoinedGame);
+    socket.on(JOINED_GAME, onJoinedGame);
 
     return () => {
-      socket.off('joined-game', onJoinedGame);
+      socket.off(JOINED_GAME, onJoinedGame);
     };
   }, []);
 
