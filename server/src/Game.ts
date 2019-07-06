@@ -1,6 +1,8 @@
 import { Players, Player } from './Player';
 import { Server, Socket } from 'socket.io';
 
+import { GAME_INFO } from './../../shared/server-events';
+
 interface Option {
   text: string;
   correct: boolean;
@@ -115,11 +117,11 @@ export class Game {
   }
 
   updateGameInfo() {
-    this.io.to(this.id).emit('game-info', {
+    this.io.to(this.id).emit(GAME_INFO, {
       id: this.id,
       players: Array.from(this.players),
       disconnectedPlayers: Array.from(this.disconnectedPlayers),
-      question: this.questions[this.currentQuestion],
+      questions: this.questions,
     });
   }
 }
