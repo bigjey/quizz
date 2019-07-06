@@ -111,8 +111,6 @@ export class Game {
     this.disconnectedPlayers.delete(id);
     this.players.delete(id);
     
-    console.log('lokh pidr', this.players);
-
     this.updateGameInfo();
   }
 
