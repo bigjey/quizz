@@ -3,7 +3,12 @@ import SocketServer, { Server } from 'socket.io';
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
 
-import { NEW_PLAYER, JOIN_GAME, NEW_GAME } from '../../shared/client-events';
+import { 
+  NEW_PLAYER, 
+  JOIN_GAME, 
+  NEW_GAME, 
+  LEAVE_GAME 
+} from '../../shared/client-events';
 import {
   JOINED_GAME,
   GAMES_DATA,
@@ -125,6 +130,17 @@ export const addSocketEvents = (server: any) => {
 
       game.addPlayer(player.id, socket);
       socket.emit(JOINED_GAME, game.id);
+    });
+
+    socket.on(LEAVE_GAME, id => {
+      const game = Game.Games[id];
+      const player = playerBySocket(socket.id);
+      
+      if (!game || !player) {
+        return;
+      }
+
+      game.removePlayerFromGame(player.id);
     });
   });
 };
