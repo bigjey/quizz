@@ -1,3 +1,5 @@
+import './Game.scss';
+
 import * as React from 'react';
 import { socket } from '../../socket';
 
@@ -40,10 +42,20 @@ export const Game = () => {
   }
 
   return (
-    <>
+    <div className="Game">
+      {gameInfo.disconnectedPlayers.length > 0 && (
+        <div className="Game--splash">
+          <div>
+            Ooops, player(s) are trying to reconnect:
+            {gameInfo.disconnectedPlayers.map(playerId => (
+              <div key={playerId}>{playerId}</div>
+            ))}
+          </div>
+        </div>
+      )}
       <pre>{JSON.stringify(gameInfo, null, 2)}</pre>
       <div>game #{appState.gameId}</div>
       <button onClick={onLeaveHandler}>Leave stupid game</button>
-    </>
+    </div>
   );
 };
