@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": ".\\node_modules\\.bin\\nodemon --exec .\\node_modules\\.bin\\ts-node .\\server\\src\\index.ts --watch *.ts"
+    "dev:server": "npx nodemon --exec npx ts-node ./server/src/index.ts --watch *.ts",
+    "dev:client": "npx parcel watch ./client/src/index.html -d ./client/dist --no-hmr"
   },
   "dependencies": {
     "@types/express": "^4.17.0",
     "@types/socket.io": "^2.1.2",
     "@types/socket.io-client": "^1.4.32",
+    "concurrently": "^4.1.1",
     "express": "^4.17.1",
     "parcel-bundler": "^1.12.3",
     "react": "^16.8.6",
