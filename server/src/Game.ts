@@ -110,6 +110,8 @@ export class Game {
   removePlayerFromGame(id: string) {
     this.disconnectedPlayers.delete(id);
     this.players.delete(id);
+    
+    console.log('lokh pidr', this.players);
 
     this.updateGameInfo();
   }
