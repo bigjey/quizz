@@ -2,37 +2,26 @@ import './NewPlayer.css';
 
 import * as React from 'react';
 
-import { setPlayerName } from '../../utils/storage';
-import { useAppState } from '../../hooks/useAppState';
+interface NewPlayerProps {
+  onSubmit?(e: React.FormEvent): void;
+  inputRef?: React.Ref<HTMLInputElement>;
+}
 
-export const NewPlayer = () => {
-  const { setAppState } = useAppState();
-  const nameInput = React.useRef(null);
+export const NewPlayer: React.FC<NewPlayerProps> = ({ onSubmit, inputRef }) => (
+  <div className="NewPlayer screen">
+    <form onSubmit={onSubmit}>
+      <input
+        className="NewPlayer--input"
+        type="text"
+        ref={inputRef}
+        placeholder="Give us your name, player"
+      />
+      <button className="NewPlayer--button">Join</button>
+    </form>
+  </div>
+);
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const name = nameInput.current.value.trim();
-
-    if (name.length) {
-      setAppState((state) => ({
-        ...state,
-        playerName: name
-      }));
-      setPlayerName(name);
-    }
-  };
-
-  return (
-    <>
-      <form className="NewPlayer" onSubmit={onSubmit}>
-        <input
-          className="NewPlayer--input"
-          type="text"
-          ref={nameInput}
-          placeholder="Give us your name, player"
-        />
-        <button className="NewPlayer--button">Join</button>
-      </form>
-    </>
-  );
+NewPlayer.defaultProps = {
+  onSubmit: () => {},
+  inputRef: null,
 };
