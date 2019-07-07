@@ -1,24 +1,26 @@
-import './Button.css';
+import './Button.scss';
 
 import React, { ReactNode } from 'react';
 import c from 'classnames';
 
 interface ButtonProps {
-  children: ReactNode;
-  className: string;
   full?: boolean;
+  type?: 'submit' | 'reset' | 'button';
+  variant?: 'normal' | 'big' | 'small';
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  children,
-  className = '',
-  full,
-  ...rest
-}) => {
-  const classes = c('Button', { 'Button--full': full }, className);
+export const Button: React.FC<
+  ButtonProps & React.HTMLProps<HTMLButtonElement>
+> = ({ children, className = '', full, variant, ...rest }) => {
+  const classes = c(
+    'Button',
+    `Button--size-${variant}`,
+    { 'Button--full': full },
+    className
+  );
 
   return (
-    <button className={classes} {...rest}>
+    <button type="button" className={classes} {...rest}>
       {children}
     </button>
   );
@@ -26,4 +28,6 @@ export const Button: React.FC<ButtonProps> = ({
 
 Button.defaultProps = {
   full: false,
+  type: 'button',
+  variant: 'normal',
 };

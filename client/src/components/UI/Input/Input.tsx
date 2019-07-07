@@ -1,10 +1,11 @@
-import './Input.css';
+import './Input.scss';
 
 import React from 'react';
 import c from 'classnames';
 
 interface InputProps {
   className: string;
+  [key: string]: any;
 }
 
 export const Input: React.FC<InputProps> = ({ className, ...rest }) => {

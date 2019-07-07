@@ -1,0 +1,54 @@
+@import '../variables';
+
+.Button {
+  color: $color-grayscale;
+  display: inline-block;
+  border: 0;
+  font-weight: 600;
+  line-height: 1.4;
+  background: #fff;
+  cursor: pointer;
+  border: 2px solid $color-grayscale-lighter;
+  border-radius: 50px;
+}
+
+.Button--size-normal {
+  font-size: 18px;
+  padding: 8px 16px;
+}
+
+.Button--size-big {
+  font-size: 24px;
+  padding: 10px 20px;
+  border-width: 3px;
+}
+
+.Button--size-small {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-width: 1px;
+}
+
+.Button--full {
+  display: block;
+  width: 100%;
+}
+
+.Button:active,
+.Button:hover {
+  border-color: $color-accent;
+  color: $color-accent;
+}
+
+.Button[disabled] {
+  color: #ddd;
+  border-color: #ddd;
+  cursor: default;
+}
+
+.Button > svg:first-child {
+  margin-right: 5px;
+}
+.Button > svg:last-child {
+  margin-left: 5px;
+}

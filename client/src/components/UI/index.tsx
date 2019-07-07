@@ -1,2 +1,2 @@
 export { Button } from './Button';
-export { NewElement } from './NewElement';
+export { Input } from './Input';
