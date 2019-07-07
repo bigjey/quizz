@@ -6,6 +6,7 @@ import { Button } from '../UI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faGhost } from '@fortawesome/free-solid-svg-icons';
 import { GamesListItem } from '../../../../shared/types';
+import { PlayerInfoContainer } from '../PlayerInfo';
 
 interface GamesProps {
   games: GamesListItem[];
@@ -40,6 +41,7 @@ export const Games: React.FC<GamesProps> = ({
 
   return (
     <div className="Games screen">
+      <PlayerInfoContainer />
       <div className="Games--list">
         {games.length === 0 && (
           <div className="Games--empty">

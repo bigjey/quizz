@@ -6,6 +6,7 @@ import { socket } from '../../socket';
 import { LEAVE_GAME } from '../../../../shared/client-events';
 import { PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
+import { PlayerInfoContainer } from '../PlayerInfo';
 
 export const Game = () => {
   const { appState, setAppState } = useAppState();
@@ -35,7 +36,10 @@ export const Game = () => {
   }
 
   return (
-    <div className="Game">
+    <div className="Game screen">
+      <PlayerInfoContainer />
+      <div>game #{gameId}</div>
+      <button onClick={onLeaveHandler}>Leave stupid game</button>
       {gameInfo.disconnectedPlayers.length > 0 && (
         <div className="Game--splash">
           <div>
@@ -47,8 +51,6 @@ export const Game = () => {
         </div>
       )}
       <pre>{JSON.stringify(gameInfo, null, 2)}</pre>
-      <div>game #{gameId}</div>
-      <button onClick={onLeaveHandler}>Leave stupid game</button>
     </div>
   );
 };

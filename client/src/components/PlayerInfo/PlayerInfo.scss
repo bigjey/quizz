@@ -1,0 +1,22 @@
+@import '../UI/variables';
+
+.PlayerInfo {
+  background: #f0f0f0;
+  margin: -20px;
+  margin-bottom: 20px;
+  padding: 10px;
+  align-self: flex-end;
+  text-align: right;
+  border-bottom-left-radius: 8px;
+}
+
+.PlayerInfo--name {
+  margin-left: 10px;
+  vertical-align: top;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.PlayerInfo svg {
+  font-size: 20px;
+}
