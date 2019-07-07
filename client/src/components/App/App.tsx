@@ -8,7 +8,13 @@ import { GamesContainer } from '../Games';
 
 import { socket } from '../../socket';
 import { NEW_PLAYER } from '../../../../shared/client-events';
-import { JOINED_GAME } from '../../../../shared/server-events';
+import {
+  JOINED_GAME,
+  GAMES_DATA,
+  GAME_INFO,
+} from '../../../../shared/server-events';
+
+import { GamesDataPayload } from '../../../../shared/types';
 
 export const App = () => {
   const { appState, setAppState } = useAppState();
@@ -32,10 +38,28 @@ export const App = () => {
       }));
     };
 
+    const onGameInfo = gameData => {
+      setAppState(state => ({
+        ...state,
+        gameInfo: gameData,
+      }));
+    };
+
+    const onGamesUpdate = (games: GamesDataPayload) => {
+      setAppState(state => ({
+        ...state,
+        games,
+      }));
+    };
+
     socket.on(JOINED_GAME, onJoinedGame);
+    socket.on(GAMES_DATA, onGamesUpdate);
+    socket.on(GAME_INFO, onGameInfo);
 
     return () => {
       socket.off(JOINED_GAME, onJoinedGame);
+      socket.off(GAMES_DATA, onGamesUpdate);
+      socket.off(GAME_INFO, onGameInfo);
     };
   }, []);
 
