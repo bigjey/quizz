@@ -1,5 +1,4 @@
-import { GAME_INFO } from './../../shared/server-events';
-import SocketServer, { Server } from 'socket.io';
+import SocketServer from 'socket.io';
 
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
@@ -10,12 +9,14 @@ import {
   NEW_GAME,
   LEAVE_GAME,
 } from '../../shared/client-events';
+
 import {
   JOINED_GAME,
   GAMES_DATA,
   PLAYERS_DATA,
-  PLAYER_LEFT,
 } from '../../shared/server-events';
+
+import { GamesDataPayload } from '../../shared/types';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -49,12 +50,14 @@ export const addSocketEvents = (server: any) => {
   }
 
   function updateGames() {
-    io.emit(
-      GAMES_DATA,
-      Object.values(Game.Games).map((g: Game) => {
-        return g.id;
-      })
-    );
+    const payload: GamesDataPayload = Object.values(Game.Games)
+      .filter(g => g.players.size < 4)
+      .map((g: Game) => ({
+        id: g.id,
+        maxPlayers: 4,
+        playersCount: g.players.size,
+      }));
+    io.emit(GAMES_DATA, payload);
   }
 
   io.on('connection', function(socket) {
@@ -84,7 +87,6 @@ export const addSocketEvents = (server: any) => {
     });
 
     socket.on('disconnect', () => {
-      // onPlayerDisconnect
       const p = playerBySocket(socket.id);
 
       if (!p) {
@@ -106,6 +108,7 @@ export const addSocketEvents = (server: any) => {
         _disconnections[p.id] = timerID;
         game.addDisconnectedPlayer(p.id);
       }
+
       updatePlayers();
     });
 
@@ -119,9 +122,9 @@ export const addSocketEvents = (server: any) => {
 
       Game.Games[game.id] = game;
 
-      updateGames();
-
       socket.emit(JOINED_GAME, game.id);
+
+      updateGames();
     });
 
     socket.on(JOIN_GAME, id => {
@@ -134,6 +137,8 @@ export const addSocketEvents = (server: any) => {
 
       game.addPlayer(player.id, socket);
       socket.emit(JOINED_GAME, game.id);
+
+      updateGames();
     });
 
     socket.on(LEAVE_GAME, id => {
@@ -145,6 +150,8 @@ export const addSocketEvents = (server: any) => {
       }
 
       game.removePlayerFromGame(player.id);
+
+      updateGames();
     });
   });
 };
