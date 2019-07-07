@@ -23,7 +23,15 @@ render(
       <Button>Button</Button>
     </Example>
 
-    <Example name="Button big">
+    <Example name="Button color">
+      <Button>Button</Button>
+      <Button color="green">Button</Button>
+      <Button color="blue">Button</Button>
+    </Example>
+
+    <Example name="Button variant">
+      <Button variant="small">Button</Button>
+      <Button>Button</Button>
       <Button variant="big">Button</Button>
     </Example>
 
@@ -44,7 +52,7 @@ render(
     </Example>
 
     <Example name="Button">
-      <Button>
+      <Button variant="big">
         Enough text for two columns, i swear <FontAwesomeIcon icon={faPlus} />
       </Button>
     </Example>
