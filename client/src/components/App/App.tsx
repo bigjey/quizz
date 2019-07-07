@@ -3,8 +3,8 @@ import * as React from 'react';
 import { useAppState } from '../../hooks/useAppState';
 
 import { NewPlayerContainer } from '../NewPlayer';
-import { Games } from '../Games';
 import { Game } from '../Game';
+import { GamesContainer } from '../Games';
 
 import { socket } from '../../socket';
 import { NEW_PLAYER } from '../../../../shared/client-events';
@@ -43,8 +43,7 @@ export const App = () => {
     <>
       {playerName ? (
         <>
-          Player: {playerName}#{playerId}
-          <Games />
+          <GamesContainer />
           <Game />
         </>
       ) : (
