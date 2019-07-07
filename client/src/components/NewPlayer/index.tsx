@@ -1,1 +1,2 @@
-export { NewPlayer, NewPlayerContainer } from './NewPlayer';
+export { NewPlayer } from './NewPlayer';
+export { NewPlayerContainer } from './NewPlayerContainer';

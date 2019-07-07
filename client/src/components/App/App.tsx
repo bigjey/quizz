@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { useAppState } from '../../hooks/useAppState';
 
-import { NewPlayer } from '../NewPlayer';
+import { NewPlayerContainer } from '../NewPlayer';
 import { Games } from '../Games';
 import { Game } from '../Game';
 
@@ -48,7 +48,7 @@ export const App = () => {
           <Game />
         </>
       ) : (
-        <NewPlayer />
+        <NewPlayerContainer />
       )}
     </>
   );
