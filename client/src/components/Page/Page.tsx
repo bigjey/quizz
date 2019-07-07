@@ -1,4 +1,4 @@
-import './Page.css';
+import './Page.scss';
 
 import React from 'react';
 

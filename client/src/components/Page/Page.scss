@@ -14,16 +14,13 @@
 html,
 body {
   height: 100%;
+  font-family: 'Fira Sans', sans-serif;
 }
 
 button,
 input,
 textarea {
   font-family: 'Fira Sans', sans-serif;
-}
-
-:root {
-  --primary-bg: #403461;
 }
 
 #app {
@@ -38,5 +35,4 @@ textarea {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  background: var(--primary-bg);
 }
