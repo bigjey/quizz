@@ -7,14 +7,16 @@ interface ButtonProps {
   full?: boolean;
   type?: 'submit' | 'reset' | 'button';
   variant?: 'normal' | 'big' | 'small';
+  color?: 'default' | 'green' | 'blue';
 }
 
 export const Button: React.FC<
   ButtonProps & React.HTMLProps<HTMLButtonElement>
-> = ({ children, className = '', full, variant, ...rest }) => {
+> = ({ children, className = '', full, variant, color, ...rest }) => {
   const classes = c(
     'Button',
     `Button--size-${variant}`,
+    `Button--color-${color}`,
     { 'Button--full': full },
     className
   );
@@ -30,4 +32,5 @@ Button.defaultProps = {
   full: false,
   type: 'button',
   variant: 'normal',
+  color: 'default',
 };

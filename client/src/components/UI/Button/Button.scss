@@ -1,49 +1,98 @@
 @import '../variables';
 
 .Button {
-  color: $color-grayscale;
   display: inline-block;
   border: 0;
-  font-weight: 600;
   line-height: 1.4;
-  background: #fff;
-  cursor: pointer;
-  border: 2px solid $color-grayscale-lighter;
+  border-style: solid;
   border-radius: 50px;
+  cursor: pointer;
 }
 
+// sizes
+
 .Button--size-normal {
+  font-weight: 600;
   font-size: 18px;
   padding: 8px 16px;
+  border-width: 2px;
 }
 
 .Button--size-big {
+  font-weight: 600;
   font-size: 24px;
   padding: 10px 20px;
   border-width: 3px;
 }
 
 .Button--size-small {
+  font-weight: normal;
   font-size: 14px;
-  padding: 8px 16px;
+  padding: 4px 12px;
   border-width: 1px;
 }
 
-.Button--full {
-  display: block;
-  width: 100%;
+// colors
+
+.Button--color-default {
+  background: #fff;
+  color: $color-grayscale;
+  border-color: $color-grayscale-lighter;
 }
 
-.Button:active,
-.Button:hover {
+.Button--color-default:active,
+.Button--color-default:hover {
   border-color: $color-accent;
   color: $color-accent;
 }
 
-.Button[disabled] {
+.Button--color-default[disabled] {
   color: #ddd;
   border-color: #ddd;
   cursor: default;
+}
+
+.Button--color-green {
+  background: #fff;
+  color: $color-green;
+  border-color: $color-green;
+}
+
+.Button--color-green:active,
+.Button--color-green:hover {
+  border-color: $color-green-accent;
+  color: $color-green-accent;
+}
+
+.Button--color-green[disabled] {
+  color: #ddd;
+  border-color: #ddd;
+  cursor: default;
+}
+
+.Button--color-blue {
+  background: #fff;
+  color: $color-blue;
+  border-color: $color-blue;
+}
+
+.Button--color-blue:active,
+.Button--color-blue:hover {
+  border-color: $color-blue-accent;
+  color: $color-blue-accent;
+}
+
+.Button--color-blue[disabled] {
+  color: #ddd;
+  border-color: #ddd;
+  cursor: default;
+}
+
+// full
+
+.Button--full {
+  display: block;
+  width: 100%;
 }
 
 .Button > svg:first-child {
