@@ -4,13 +4,15 @@
   "license": "MIT",
   "scripts": {
     "dev:server": "npx nodemon --exec npx ts-node ./server/src/index.ts --watch *.ts",
-    "dev:client": "npx parcel ./client/src/index.html --open",
-    "dev:playground": "npx parcel ./client/playground/index.html --open --port=1230",
+    "dev:client": "npx parcel ./client/src/{playground,index}.html --open",
     "build:client": "npx parcel build ./client/src/index.html -d ./client/dist",
     "server": "yarn run dev:server",
     "g": "node ./scripts/generateCode"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.19",
+    "@fortawesome/free-solid-svg-icons": "^5.9.0",
+    "@fortawesome/react-fontawesome": "^0.1.4",
     "@types/express": "^4.17.0",
     "@types/prop-types": "^15.7.1",
     "@types/socket.io": "^2.1.2",
