@@ -2,7 +2,7 @@ import { Players, Player } from './Player';
 import { Server, Socket } from 'socket.io';
 
 import { GAME_INFO, PLAYER_LEFT } from './../../shared/server-events';
-import { GameInfoPayload, PlayerInfo } from './../../shared/types';
+import { GameInfoPayload, PlayerInfo, GamePlayer } from './../../shared/types';
 
 interface Option {
   text: string;
@@ -59,6 +59,17 @@ const questions = [
   },
 ];
 
+interface GamePlayers {
+  [playerId: string]: GamePlayer;
+}
+
+const addPlayerInfo = (p: GamePlayer) => {
+  return {
+    ...p,
+    name: Player.Players[p.id].name,
+  };
+};
+
 export class Game {
   static Games: {
     [key: string]: Game;
@@ -68,10 +79,10 @@ export class Game {
 
   io: Server;
   id: string = null;
-  players: Set<string> = new Set();
-  disconnectedPlayers: Set<string> = new Set();
   questions: Question[] = questions;
   currentQuestion: number = 0;
+
+  players: GamePlayers = {};
 
   constructor(io: Server, p: Player, s: Socket) {
     this.io = io;
@@ -85,7 +96,7 @@ export class Game {
   }
 
   addPlayer(id: string, s: Socket) {
-    this.players.add(id);
+    this.players[id] = new GamePlayer(id);
 
     s.join(this.id);
 
@@ -93,26 +104,25 @@ export class Game {
   }
 
   removePlayer(id: string) {
-    this.players.delete(id);
+    delete this.players[id];
 
     this.updateGameInfo();
   }
 
   addDisconnectedPlayer(id: string) {
-    this.disconnectedPlayers.add(id);
+    this.players[id].disconnected = true;
 
     this.updateGameInfo();
   }
 
   removeDisconnectedPlayer(id: string) {
-    this.disconnectedPlayers.delete(id);
+    this.players[id].disconnected = false;
 
     this.updateGameInfo();
   }
 
   removePlayerFromGame(id: string) {
-    this.disconnectedPlayers.delete(id);
-    this.players.delete(id);
+    delete this.players[id];
 
     const player = Player.Players[id];
 
@@ -132,10 +142,7 @@ export class Game {
   getGameInfoPayload(): GameInfoPayload {
     return {
       id: this.id,
-      players: Array.from(this.players).map(pId => Player.getPlayerInfo(pId)),
-      disconnectedPlayers: Array.from(this.disconnectedPlayers).map(pId =>
-        Player.getPlayerInfo(pId)
-      ),
+      players: Object.values(this.players).map(addPlayerInfo),
     };
   }
 }
