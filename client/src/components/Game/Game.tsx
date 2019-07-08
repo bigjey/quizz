@@ -44,13 +44,15 @@ const Game = () => {
         <div className="Game--splash">
           <div>
             Ooops, player(s) are trying to reconnect:
-            {gameInfo.disconnectedPlayers.map(playerId => (
-              <div key={playerId}>{playerId}</div>
+            {gameInfo.disconnectedPlayers.map(player => (
+              <div key={player.id}>{player.name}</div>
             ))}
           </div>
         </div>
       )}
-      <pre>{JSON.stringify(gameInfo, null, 2)}</pre>
+      {gameInfo.players.map(player => (
+        <div key={player.id}>{player.name}</div>
+      ))}
     </div>
   );
 };

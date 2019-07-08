@@ -5,3 +5,14 @@ export interface GamesListItem {
 }
 
 export type GamesDataPayload = GamesListItem[];
+
+export interface PlayerInfo {
+  id: string;
+  name: string;
+}
+
+export interface GameInfoPayload {
+  id: string;
+  players: PlayerInfo[];
+  disconnectedPlayers: PlayerInfo[];
+}
