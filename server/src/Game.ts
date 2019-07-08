@@ -2,6 +2,7 @@ import { Players, Player } from './Player';
 import { Server, Socket } from 'socket.io';
 
 import { GAME_INFO, PLAYER_LEFT } from './../../shared/server-events';
+import { GameInfoPayload, PlayerInfo } from './../../shared/types';
 
 interface Option {
   text: string;
@@ -125,11 +126,16 @@ export class Game {
   }
 
   updateGameInfo() {
-    this.io.to(this.id).emit(GAME_INFO, {
+    this.io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
+  }
+
+  getGameInfoPayload(): GameInfoPayload {
+    return {
       id: this.id,
-      players: Array.from(this.players),
-      disconnectedPlayers: Array.from(this.disconnectedPlayers),
-      questions: this.questions,
-    });
+      players: Array.from(this.players).map(pId => Player.getPlayerInfo(pId)),
+      disconnectedPlayers: Array.from(this.disconnectedPlayers).map(pId =>
+        Player.getPlayerInfo(pId)
+      ),
+    };
   }
 }

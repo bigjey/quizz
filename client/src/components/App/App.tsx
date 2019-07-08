@@ -14,7 +14,7 @@ import {
   GAME_INFO,
 } from '../../../../shared/server-events';
 
-import { GamesDataPayload } from '../../../../shared/types';
+import { GamesDataPayload, GameInfoPayload } from '../../../../shared/types';
 
 const App = () => {
   const { appState, setAppState } = useAppState();
@@ -38,7 +38,7 @@ const App = () => {
       }));
     };
 
-    const onGameInfo = gameData => {
+    const onGameInfo = (gameData: GameInfoPayload) => {
       setAppState(state => ({
         ...state,
         gameInfo: gameData,
