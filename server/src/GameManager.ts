@@ -32,7 +32,7 @@ function playerBySocket(socketId: string | null) {
 }
 
 function gameByPlayer(id: string) {
-  return Object.values(Game.Games).find((g: Game) => g.players.has(id));
+  return Object.values(Game.Games).find((g: Game) => g.players[id]);
 }
 
 export const addSocketEvents = (server: any) => {
@@ -51,11 +51,11 @@ export const addSocketEvents = (server: any) => {
 
   function updateGames() {
     const payload: GamesDataPayload = Object.values(Game.Games)
-      .filter(g => g.players.size < 4)
+      .filter(g => Object.keys(g.players).length < 4)
       .map((g: Game) => ({
         id: g.id,
         maxPlayers: 4,
-        playersCount: g.players.size,
+        playersCount: Object.keys(g.players).length,
       }));
     io.emit(GAMES_DATA, payload);
   }

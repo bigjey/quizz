@@ -35,16 +35,18 @@ const Game = () => {
     return null;
   }
 
+  const disconnected = gameInfo.players.filter(p => p.disconnected);
+
   return (
     <div className="Game screen">
       <PlayerInfoContainer />
       <div>game #{gameId}</div>
       <button onClick={onLeaveHandler}>Leave stupid game</button>
-      {gameInfo.disconnectedPlayers.length > 0 && (
+      {disconnected.length > 0 && (
         <div className="Game--splash">
           <div>
             Ooops, player(s) are trying to reconnect:
-            {gameInfo.disconnectedPlayers.map(player => (
+            {disconnected.map(player => (
               <div key={player.id}>{player.name}</div>
             ))}
           </div>
