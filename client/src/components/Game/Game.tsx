@@ -3,10 +3,11 @@ import './Game.scss';
 import * as React from 'react';
 import { socket } from '../../socket';
 
-import { LEAVE_GAME } from '../../../../shared/client-events';
+import { LEAVE_GAME, TOGGLE_READY } from '../../../../shared/client-events';
 import { PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
+import { Button } from '../UI';
 
 const Game = () => {
   const { appState, setAppState } = useAppState();
@@ -31,11 +32,16 @@ const Game = () => {
     });
   };
 
+  const onReadyHandler = () => {
+    socket.emit(TOGGLE_READY, appState.gameId);
+  };
+
   if (!gameId || !gameInfo) {
     return null;
   }
 
   const disconnected = gameInfo.players.filter(p => p.disconnected);
+  const player = gameInfo.players.find(p => p.id === appState.playerId);
 
   return (
     <div className="Game screen">
@@ -53,8 +59,16 @@ const Game = () => {
         </div>
       )}
       {gameInfo.players.map(player => (
-        <div key={player.id}>{player.name}</div>
+        <div key={player.id}>
+          {player.name}
+          <input type="checkbox" checked={player.ready} />
+          {player.disconnected && '(disconnected)'}
+        </div>
       ))}
+
+      <Button onClick={onReadyHandler}>
+        {player.ready ? 'I am not ready yet' : 'I am Ready'}
+      </Button>
     </div>
   );
 };

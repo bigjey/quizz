@@ -1,3 +1,4 @@
+import { TOGGLE_READY } from './../../shared/client-events';
 import SocketServer from 'socket.io';
 
 import { Player, NewPlayer } from './Player';
@@ -152,6 +153,17 @@ export const addSocketEvents = (server: any) => {
       game.removePlayerFromGame(player.id);
 
       updateGames();
+    });
+
+    socket.on(TOGGLE_READY, id => {
+      const game = Game.Games[id];
+      const player = playerBySocket(socket.id);
+
+      if (!game || !player) {
+        return;
+      }
+
+      game.togglePlayerReady(player.id);
     });
   });
 };
