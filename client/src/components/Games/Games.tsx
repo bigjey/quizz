@@ -14,7 +14,7 @@ interface GamesProps {
   onNewGameClick(): void;
 }
 
-export const Games: React.FC<GamesProps> = ({
+const Games: React.FC<GamesProps> = ({
   games,
   onJoinGameClick,
   onNewGameClick,
@@ -62,3 +62,5 @@ export const Games: React.FC<GamesProps> = ({
     </div>
   );
 };
+
+export { Games };

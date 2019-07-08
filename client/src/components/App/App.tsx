@@ -16,7 +16,7 @@ import {
 
 import { GamesDataPayload } from '../../../../shared/types';
 
-export const App = () => {
+const App = () => {
   const { appState, setAppState } = useAppState();
 
   const { playerName, playerId } = appState;
@@ -76,3 +76,5 @@ export const App = () => {
     </>
   );
 };
+
+export { App };

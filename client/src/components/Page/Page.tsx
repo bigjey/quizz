@@ -2,6 +2,8 @@ import './Page.scss';
 
 import React from 'react';
 
-export const Page = props => {
+const Page = props => {
   return <>{props.children}</>;
 };
+
+export { Page };

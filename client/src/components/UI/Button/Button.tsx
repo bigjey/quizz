@@ -10,9 +10,14 @@ interface ButtonProps {
   color?: 'default' | 'green' | 'blue';
 }
 
-export const Button: React.FC<
-  ButtonProps & React.HTMLProps<HTMLButtonElement>
-> = ({ children, className = '', full, variant, color, ...rest }) => {
+const Button: React.FC<ButtonProps & React.HTMLProps<HTMLButtonElement>> = ({
+  children,
+  className = '',
+  full,
+  variant,
+  color,
+  ...rest
+}) => {
   const classes = c(
     'Button',
     `Button--size-${variant}`,
@@ -34,3 +39,5 @@ Button.defaultProps = {
   variant: 'normal',
   color: 'default',
 };
+
+export { Button };

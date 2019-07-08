@@ -7,21 +7,23 @@ const defaultState = () => {
     playerId: getPlayerId(),
     playerName: getPlayerName(),
     games: [],
-    gameId: null
+    gameId: null,
   };
 };
 
-export const AppContext = React.createContext(null);
+const AppContext = React.createContext(null);
 
-export const AppStateProvider = (props) => {
+const AppStateProvider = props => {
   const [appState, setAppState] = React.useState(defaultState());
 
   const value = {
     appState,
-    setAppState
+    setAppState,
   };
 
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
   );
 };
+
+export { AppStateProvider, AppContext };
