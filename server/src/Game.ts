@@ -111,6 +111,7 @@ export class Game {
 
   addDisconnectedPlayer(id: string) {
     this.players[id].disconnected = true;
+    this.togglePlayerReady(id, false);
 
     this.updateGameInfo();
   }
@@ -131,6 +132,12 @@ export class Game {
         message: `player with nick ${this.addPlayer.name} has left the game`,
       });
     }
+
+    this.updateGameInfo();
+  }
+
+  togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
+    this.players[id].ready = ready;
 
     this.updateGameInfo();
   }
