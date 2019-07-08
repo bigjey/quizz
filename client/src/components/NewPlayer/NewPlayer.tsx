@@ -7,7 +7,7 @@ interface NewPlayerProps {
   onSubmit?(value: string): void;
 }
 
-export const NewPlayer: React.FC<NewPlayerProps> = ({ onSubmit }) => {
+const NewPlayer: React.FC<NewPlayerProps> = ({ onSubmit }) => {
   const [value, setValue] = React.useState('');
 
   return (
@@ -53,3 +53,5 @@ export const NewPlayer: React.FC<NewPlayerProps> = ({ onSubmit }) => {
 NewPlayer.defaultProps = {
   onSubmit: () => {},
 };
+
+export { NewPlayer };

@@ -8,7 +8,7 @@ import { PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
 
-export const Game = () => {
+const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
 
@@ -54,3 +54,5 @@ export const Game = () => {
     </div>
   );
 };
+
+export { Game };

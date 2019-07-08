@@ -8,7 +8,7 @@ interface InputProps {
   [key: string]: any;
 }
 
-export const Input: React.FC<InputProps> = ({ className, ...rest }) => {
+const Input: React.FC<InputProps> = ({ className, ...rest }) => {
   const classes = c('Input', className);
 
   return <input className={classes} {...rest} />;
@@ -17,3 +17,5 @@ export const Input: React.FC<InputProps> = ({ className, ...rest }) => {
 Input.defaultProps = {
   className: '',
 };
+
+export { Input };

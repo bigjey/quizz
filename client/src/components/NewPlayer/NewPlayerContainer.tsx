@@ -5,7 +5,7 @@ import { useAppState } from '../../hooks/useAppState';
 
 import { NewPlayer } from './NewPlayer';
 
-export const NewPlayerContainer = () => {
+const NewPlayerContainer = () => {
   const { setAppState } = useAppState();
 
   const onSubmit = name => {
@@ -18,3 +18,5 @@ export const NewPlayerContainer = () => {
 
   return <NewPlayer onSubmit={onSubmit} />;
 };
+
+export { NewPlayerContainer };

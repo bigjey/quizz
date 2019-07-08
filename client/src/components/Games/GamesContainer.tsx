@@ -10,7 +10,7 @@ import { GamesDataPayload } from '../../../../shared/types';
 
 import { Games } from './Games';
 
-export const GamesContainer = () => {
+const GamesContainer = () => {
   const { appState } = useAppState();
 
   if (appState.gameId) {
@@ -29,3 +29,5 @@ export const GamesContainer = () => {
     />
   );
 };
+
+export { GamesContainer };
