@@ -14,6 +14,7 @@ export interface PlayerInfo {
 export interface GameInfoPayload {
   id: string;
   players: GamePlayer[];
+  gameStage: GameStages;
 }
 
 export interface IGamePlayer {
@@ -32,4 +33,11 @@ export class GamePlayer implements IGamePlayer {
   constructor(id: string) {
     this.id = id;
   }
+}
+
+export enum GameStages {
+  LOBBY,
+  LOBBY_COUNTDOWN,
+  QUESTIONS,
+  RESULTS,
 }

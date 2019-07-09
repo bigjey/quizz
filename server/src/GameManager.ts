@@ -18,6 +18,7 @@ import {
 } from '../../shared/server-events';
 
 import { GamesDataPayload } from '../../shared/types';
+import { MAX_PLAYERS } from '../../shared/constants';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -52,10 +53,10 @@ export const addSocketEvents = (server: any) => {
 
   function updateGames() {
     const payload: GamesDataPayload = Object.values(Game.Games)
-      .filter(g => Object.keys(g.players).length < 4)
+      .filter(g => Object.keys(g.players).length < MAX_PLAYERS)
       .map((g: Game) => ({
         id: g.id,
-        maxPlayers: 4,
+        maxPlayers: MAX_PLAYERS,
         playersCount: Object.keys(g.players).length,
       }));
     io.emit(GAMES_DATA, payload);

@@ -12,6 +12,9 @@ import { Button } from '../UI';
 const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
+  // const { gameStage } = gameInfo;
+
+  console.log(gameInfo);
 
   React.useEffect(() => {
     const onPlayerLeft = message => {
@@ -23,6 +26,10 @@ const Game = () => {
       socket.off(PLAYER_LEFT, onPlayerLeft);
     };
   }, []);
+
+  // React.useEffect(() => {
+  //   console.log('gameState changed!', gameStage);
+  // }, [gameStage]);
 
   const onLeaveHandler = () => {
     socket.emit(LEAVE_GAME, gameId);
@@ -36,12 +43,18 @@ const Game = () => {
     socket.emit(TOGGLE_READY, appState.gameId);
   };
 
+  const startCountdown = () => {};
+
+  const onEveryBodyReady = () => {};
+
   if (!gameId || !gameInfo) {
     return null;
   }
 
   const disconnected = gameInfo.players.filter(p => p.disconnected);
   const player = gameInfo.players.find(p => p.id === appState.playerId);
+  const totalPlayers = gameInfo.players.length;
+  const readyPlayers = gameInfo.players.filter(p => p.ready).length;
 
   return (
     <div className="Game screen">
@@ -61,11 +74,13 @@ const Game = () => {
       {gameInfo.players.map(player => (
         <div key={player.id}>
           {player.name}
-          <input type="checkbox" checked={player.ready} />
+          <input type="checkbox" checked={player.ready} readOnly />
           {player.disconnected && '(disconnected)'}
         </div>
       ))}
-
+      <div className="Game--players--counter">
+        {`${readyPlayers} / ${totalPlayers}`}
+      </div>
       <Button onClick={onReadyHandler}>
         {player.ready ? 'I am not ready yet' : 'I am Ready'}
       </Button>
