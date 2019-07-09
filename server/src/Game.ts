@@ -68,9 +68,6 @@ const questions = [
 interface GamePlayers {
   [playerId: string]: GamePlayer;
 }
-interface CountDowns {
-  [gameId: string]: NodeJS.Timeout;
-}
 
 const addPlayerInfo = (p: GamePlayer) => {
   return {
@@ -93,7 +90,7 @@ export class Game {
   gameStage: GameStages = GameStages.LOBBY;
 
   players: GamePlayers = {};
-  countDowns: CountDowns = {};
+  lobbyCountDown: NodeJS.Timeout;
 
   constructor(io: Server, p: Player, s: Socket) {
     this.io = io;
@@ -147,43 +144,33 @@ export class Game {
     this.updateGameInfo();
   }
 
-  changeCurrentStage(gId: string) {
-    const isEverybodyReady = Object.values(this.players).every(
-      player => player.ready
-    );
-
-    let countDownId = null;
-
-    if (isEverybodyReady) {
-      this.gameStage = GameStages.LOBBY_COUNTDOWN;
-
-      countDownId = setTimeout(() => {
-        this.gameStage = GameStages.QUESTIONS;
-
-        delete this.countDowns[gId];
-      }, COUNTDOWN_TO_GAME_START);
-
-      this.countDowns[gId] = countDownId;
-    }
-
-    if (!isEverybodyReady) {
-      if (this.countDowns[gId]) {
-        clearTimeout(countDownId);
-      }
-      this.gameStage = GameStages.LOBBY;
-    }
-
-    this.updateGameInfo();
+  startLobbyCountDown() {
+    this.lobbyCountDown = setTimeout(() => {
+      this.gameStage = GameStages.QUESTIONS;
+      this.updateGameInfo();
+    }, COUNTDOWN_TO_GAME_START);
   }
 
-  getCurrentStage(gId: string) {
-    this.changeCurrentStage(gId);
-
-    return this.gameStage;
+  stopLobbyCountDown() {
+    if (this.lobbyCountDown) {
+      clearTimeout(this.lobbyCountDown);
+    }
   }
 
   togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
+    let isEverybodyReady = false;
+
     this.players[id].ready = ready;
+
+    isEverybodyReady = Object.values(this.players).every(
+      player => player.ready
+    );
+
+    if (isEverybodyReady) {
+      this.startLobbyCountDown();
+    } else {
+      this.stopLobbyCountDown();
+    }
 
     this.updateGameInfo();
   }
