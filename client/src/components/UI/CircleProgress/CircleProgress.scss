@@ -1,0 +1,7 @@
+.CircleProgress {
+  display: inline-block;
+}
+.CircleProgress--circle {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
