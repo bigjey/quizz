@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 
 import { Page } from './components/Page';
 import { NewPlayer } from './components/NewPlayer';
-import { Button } from './components/UI';
+import { Button, Modal } from './components/UI';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -53,8 +53,32 @@ Countdown.defaultProps = {
   render: (value: any) => null,
 };
 
+const ModalExample = () => {
+  const [show, showModal] = React.useState(false);
+
+  return (
+    <div>
+      <Button
+        onClick={() => {
+          showModal(!show);
+        }}
+      >
+        show modal
+      </Button>
+      <Modal onClose={() => showModal(false)} open={show}>
+        <Modal.Header>1</Modal.Header>
+        <Modal.Body>
+          <div style={{ height: 2000 }} />
+        </Modal.Body>
+        <Modal.Footer>3</Modal.Footer>
+      </Modal>
+    </div>
+  );
+};
+
 render(
   <Page>
+    <ModalExample />
     <Example>
       <Countdown
         start={0}
