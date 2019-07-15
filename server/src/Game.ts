@@ -1,13 +1,18 @@
 import { Players, Player } from './Player';
 import { Server, Socket } from 'socket.io';
 
-import { COUNTDOWN_TO_GAME_START } from './../../shared/constants';
-import { GAME_INFO, PLAYER_LEFT } from './../../shared/server-events';
+import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from './../../shared/constants';
+import {
+  GAME_INFO,
+  PLAYER_LEFT,
+  GAMES_DATA,
+} from './../../shared/server-events';
 import {
   GameInfoPayload,
   PlayerInfo,
   GamePlayer,
   GameStages,
+  GamesDataPayload,
 } from './../../shared/types';
 
 interface Option {
@@ -81,9 +86,32 @@ export class Game {
     [key: string]: Game;
   } = {};
 
+  static io: Server;
+
+  static updateGames(socket?: Socket) {
+    const payload: GamesDataPayload = Object.values(this.Games)
+      .filter(g => {
+        if (g.gameStage !== GameStages.LOBBY) return false;
+
+        if (Object.keys(g.players).length === MAX_PLAYERS) return false;
+
+        return true;
+      })
+      .map((g: Game) => ({
+        id: g.id,
+        maxPlayers: MAX_PLAYERS,
+        playersCount: Object.keys(g.players).length,
+      }));
+
+    if (socket) {
+      socket.emit(GAMES_DATA, payload);
+    } else {
+      Game.io.emit(GAMES_DATA, payload);
+    }
+  }
+
   hostId: string;
 
-  io: Server;
   id: string = null;
   questions: Question[] = questions;
   currentQuestion: number = 0;
@@ -93,7 +121,6 @@ export class Game {
   lobbyCountDown: NodeJS.Timeout;
 
   constructor(io: Server, p: Player, s: Socket) {
-    this.io = io;
     this.id = Math.random()
       .toString()
       .slice(2, 10);
@@ -108,11 +135,16 @@ export class Game {
 
     s.join(this.id);
 
+    Game.updateGames();
     this.updateGameInfo();
   }
 
   removePlayer(id: string) {
     delete this.players[id];
+
+    if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
+      this.stopLobbyCountDown();
+    }
 
     this.updateGameInfo();
   }
@@ -120,6 +152,10 @@ export class Game {
   addDisconnectedPlayer(id: string) {
     this.players[id].disconnected = true;
     this.togglePlayerReady(id, false);
+
+    if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
+      this.stopLobbyCountDown();
+    }
 
     this.updateGameInfo();
   }
@@ -136,15 +172,34 @@ export class Game {
     const player = Player.Players[id];
 
     if (player) {
-      this.io.to(this.id).emit(PLAYER_LEFT, {
+      Game.io.to(this.id).emit(PLAYER_LEFT, {
         message: `player with nick ${this.addPlayer.name} has left the game`,
       });
+
+      if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
+        this.stopLobbyCountDown();
+      }
     }
 
+    Game.updateGames();
     this.updateGameInfo();
   }
 
   startLobbyCountDown() {
+    console.log('startLobbyCountDown');
+
+    const isEverybodyReady = Object.values(this.players).every(
+      player => player.ready
+    );
+
+    console.log({ isEverybodyReady });
+
+    if (!isEverybodyReady) return;
+
+    this.gameStage = GameStages.LOBBY_COUNTDOWN;
+
+    console.log('new game stage', this.gameStage);
+
     this.lobbyCountDown = setTimeout(() => {
       this.gameStage = GameStages.QUESTIONS;
       this.updateGameInfo();
@@ -152,38 +207,41 @@ export class Game {
   }
 
   stopLobbyCountDown() {
+    console.log('stopLobbyCountDown');
     if (this.lobbyCountDown) {
+      Object.values(this.players).forEach(p => (p.ready = false));
+      this.gameStage = GameStages.LOBBY;
       clearTimeout(this.lobbyCountDown);
     }
   }
 
   togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
-    let isEverybodyReady = false;
-
     this.players[id].ready = ready;
 
-    isEverybodyReady = Object.values(this.players).every(
-      player => player.ready
-    );
-
-    if (isEverybodyReady) {
+    if (this.gameStage === GameStages.LOBBY) {
       this.startLobbyCountDown();
-    } else {
+    } else if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
       this.stopLobbyCountDown();
     }
+
+    Game.updateGames();
 
     this.updateGameInfo();
   }
 
   updateGameInfo() {
-    this.io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
+    Game.io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
   }
 
   getGameInfoPayload(): GameInfoPayload {
-    return {
+    const payload = {
       id: this.id,
       players: Object.values(this.players).map(addPlayerInfo),
       gameStage: this.gameStage,
     };
+
+    console.log('gameInfo', payload);
+
+    return payload;
   }
 }

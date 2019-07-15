@@ -59,7 +59,9 @@ const Game = () => {
   return (
     <div className="Game screen">
       <PlayerInfoContainer />
-      <div>game #{gameId}</div>
+      <div>
+        game #{gameId} ({gameInfo.gameStage})
+      </div>
       <button onClick={onLeaveHandler}>Leave stupid game</button>
       {disconnected.length > 0 && (
         <div className="Game--splash">
@@ -81,6 +83,7 @@ const Game = () => {
       <div className="Game--players--counter">
         {`${readyPlayers} / ${totalPlayers}`}
       </div>
+      {readyPlayers === totalPlayers && <div>COunt down</div>}
       <Button onClick={onReadyHandler}>
         {player.ready ? 'I am not ready yet' : 'I am Ready'}
       </Button>

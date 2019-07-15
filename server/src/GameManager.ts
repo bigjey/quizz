@@ -11,14 +11,9 @@ import {
   LEAVE_GAME,
 } from '../../shared/client-events';
 
-import {
-  JOINED_GAME,
-  GAMES_DATA,
-  PLAYERS_DATA,
-} from '../../shared/server-events';
+import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
 
-import { GamesDataPayload } from '../../shared/types';
-import { MAX_PLAYERS } from '../../shared/constants';
+import { GamesDataPayload, GameStages } from '../../shared/types';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -42,6 +37,8 @@ export const addSocketEvents = (server: any) => {
     path: '/socket',
   });
 
+  Game.io = io;
+
   function updatePlayers() {
     io.emit(
       PLAYERS_DATA,
@@ -51,19 +48,8 @@ export const addSocketEvents = (server: any) => {
     );
   }
 
-  function updateGames() {
-    const payload: GamesDataPayload = Object.values(Game.Games)
-      .filter(g => Object.keys(g.players).length < MAX_PLAYERS)
-      .map((g: Game) => ({
-        id: g.id,
-        maxPlayers: MAX_PLAYERS,
-        playersCount: Object.keys(g.players).length,
-      }));
-    io.emit(GAMES_DATA, payload);
-  }
-
   io.on('connection', function(socket) {
-    updateGames();
+    Game.updateGames(socket);
 
     socket.on(NEW_PLAYER, (p: NewPlayer) => {
       Player.Players[p.id] = new Player(socket, p);
@@ -125,22 +111,18 @@ export const addSocketEvents = (server: any) => {
       Game.Games[game.id] = game;
 
       socket.emit(JOINED_GAME, game.id);
-
-      updateGames();
     });
 
     socket.on(JOIN_GAME, id => {
       const game = Game.Games[id];
       const player = playerBySocket(socket.id);
 
-      if (!game || !player) {
+      if (!game || !player || game.gameStage !== GameStages.LOBBY) {
         return;
       }
 
       game.addPlayer(player.id, socket);
       socket.emit(JOINED_GAME, game.id);
-
-      updateGames();
     });
 
     socket.on(LEAVE_GAME, id => {
@@ -152,8 +134,6 @@ export const addSocketEvents = (server: any) => {
       }
 
       game.removePlayerFromGame(player.id);
-
-      updateGames();
     });
 
     socket.on(TOGGLE_READY, id => {
