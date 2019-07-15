@@ -4,13 +4,13 @@ import React from 'react';
 
 const CircleProgress = ({
   radius = 100,
-  thikness = 15,
+  thickness = 15,
   percentage = 20,
   reverse = false,
   animationSpeed = 100,
 }) => {
-  const stroke = radius - (radius - thikness);
-  const r = radius - thikness + stroke / 2;
+  const stroke = radius - (radius - thickness);
+  const r = radius - thickness + stroke / 2;
   const length = Math.PI * 2 * r;
   let filled = (length * percentage) / 100;
   let offset = 0;
