@@ -8,13 +8,49 @@ import { PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
 import { Button } from '../UI';
+import { CircleProgress } from '../UI/';
+import { GameStages } from '../../../../shared/types';
+
+const Countdown = ({
+  start = 10,
+  end = 0,
+  step = 1,
+  interval = 1000,
+  render,
+}) => {
+  const [value, setValue] = React.useState(start);
+  const v = React.useRef(start);
+
+  React.useEffect(() => {
+    const s = Math.sign(end - start) * step;
+
+    const id = window.setInterval(() => {
+      v.current += s;
+
+      if (start > end && v.current <= end) {
+        window.clearInterval(id);
+      } else if (start < end && v.current >= end) {
+        window.clearInterval(id);
+      }
+
+      setValue(v.current);
+    }, interval);
+
+    return () => {
+      window.clearInterval(id);
+    };
+  }, []);
+
+  return render(value);
+};
+
+Countdown.defaultProps = {
+  render: (value: any) => null,
+};
 
 const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
-  // const { gameStage } = gameInfo;
-
-  console.log(gameInfo);
 
   React.useEffect(() => {
     const onPlayerLeft = message => {
@@ -26,10 +62,6 @@ const Game = () => {
       socket.off(PLAYER_LEFT, onPlayerLeft);
     };
   }, []);
-
-  // React.useEffect(() => {
-  //   console.log('gameState changed!', gameStage);
-  // }, [gameStage]);
 
   const onLeaveHandler = () => {
     socket.emit(LEAVE_GAME, gameId);
@@ -83,7 +115,18 @@ const Game = () => {
       <div className="Game--players--counter">
         {`${readyPlayers} / ${totalPlayers}`}
       </div>
-      {readyPlayers === totalPlayers && <div>COunt down</div>}
+      {gameInfo.gameStage === GameStages.LOBBY_COUNTDOWN && (
+        <Countdown
+          start={0}
+          end={5}
+          render={v => (
+            <>
+              {5 - v}
+              <CircleProgress reverse percentage={v * 20} />
+            </>
+          )}
+        />
+      )}
       <Button onClick={onReadyHandler}>
         {player.ready ? 'I am not ready yet' : 'I am Ready'}
       </Button>
