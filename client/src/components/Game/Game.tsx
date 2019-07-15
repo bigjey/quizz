@@ -117,11 +117,11 @@ const Game = () => {
       </div>
       {gameInfo.gameStage === GameStages.LOBBY_COUNTDOWN && (
         <Countdown
-          start={0}
-          end={5}
+          start={5}
+          end={0}
           render={v => (
             <>
-              {5 - v}
+              {v}
               <CircleProgress reverse percentage={v * 20} />
             </>
           )}
