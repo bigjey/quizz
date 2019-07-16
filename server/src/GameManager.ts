@@ -1,5 +1,6 @@
+import { io } from './socketServer';
+
 import { TOGGLE_READY } from './../../shared/client-events';
-import SocketServer from 'socket.io';
 
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
@@ -13,7 +14,7 @@ import {
 
 import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
 
-import { GamesDataPayload, GameStages } from '../../shared/types';
+import { GameStages } from '../../shared/types';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -32,13 +33,7 @@ function gameByPlayer(id: string) {
   return Object.values(Game.Games).find((g: Game) => g.players[id]);
 }
 
-export const addSocketEvents = (server: any) => {
-  const io = SocketServer(server, {
-    path: '/socket',
-  });
-
-  Game.io = io;
-
+export const addSocketEvents = () => {
   function updatePlayers() {
     io.emit(
       PLAYERS_DATA,
@@ -61,14 +56,10 @@ export const addSocketEvents = (server: any) => {
       }
 
       if (_disconnections[p.id]) {
-        console.log(`player ${p.id} has reconnected back`);
-
         clearTimeout(_disconnections[p.id]);
         delete _disconnections[p.id];
 
         game.removeDisconnectedPlayer(p.id);
-      } else {
-        console.log(`new playered with id ${p.id} joined the game!`);
       }
 
       updatePlayers();
@@ -85,8 +76,6 @@ export const addSocketEvents = (server: any) => {
 
       if (game) {
         const timerID = setTimeout(() => {
-          console.log(`player ${p.id} was disconnected from game`);
-
           game.removePlayerFromGame(p.id);
 
           delete _disconnections[p.id];
@@ -106,7 +95,7 @@ export const addSocketEvents = (server: any) => {
         return;
       }
 
-      const game = new Game(io, p, socket);
+      const game = new Game(p, socket);
 
       Game.Games[game.id] = game;
 
