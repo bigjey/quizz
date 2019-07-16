@@ -1,5 +1,8 @@
-import { Players, Player } from './Player';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
+
+import { Player } from './Player';
+
+import { io } from './socketServer';
 
 import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from './../../shared/constants';
 import {
@@ -9,7 +12,6 @@ import {
 } from './../../shared/server-events';
 import {
   GameInfoPayload,
-  PlayerInfo,
   GamePlayer,
   GameStages,
   GamesDataPayload,
@@ -86,8 +88,6 @@ export class Game {
     [key: string]: Game;
   } = {};
 
-  static io: Server;
-
   static updateGames(socket?: Socket) {
     const payload: GamesDataPayload = Object.values(this.Games)
       .filter(g => {
@@ -106,7 +106,7 @@ export class Game {
     if (socket) {
       socket.emit(GAMES_DATA, payload);
     } else {
-      Game.io.emit(GAMES_DATA, payload);
+      io.emit(GAMES_DATA, payload);
     }
   }
 
@@ -120,7 +120,7 @@ export class Game {
   players: GamePlayers = {};
   lobbyCountDown: NodeJS.Timeout;
 
-  constructor(io: Server, p: Player, s: Socket) {
+  constructor(p: Player, s: Socket) {
     this.id = Math.random()
       .toString()
       .slice(2, 10);
@@ -172,7 +172,7 @@ export class Game {
     const player = Player.Players[id];
 
     if (player) {
-      Game.io.to(this.id).emit(PLAYER_LEFT, {
+      io.to(this.id).emit(PLAYER_LEFT, {
         message: `player with nick ${this.addPlayer.name} has left the game`,
       });
 
@@ -186,19 +186,13 @@ export class Game {
   }
 
   startLobbyCountDown() {
-    console.log('startLobbyCountDown');
-
     const isEverybodyReady = Object.values(this.players).every(
       player => player.ready
     );
 
-    console.log({ isEverybodyReady });
-
     if (!isEverybodyReady) return;
 
     this.gameStage = GameStages.LOBBY_COUNTDOWN;
-
-    console.log('new game stage', this.gameStage);
 
     this.lobbyCountDown = setTimeout(() => {
       this.gameStage = GameStages.QUESTIONS;
@@ -207,7 +201,6 @@ export class Game {
   }
 
   stopLobbyCountDown() {
-    console.log('stopLobbyCountDown');
     if (this.lobbyCountDown) {
       Object.values(this.players).forEach(p => (p.ready = false));
       this.gameStage = GameStages.LOBBY;
@@ -230,7 +223,7 @@ export class Game {
   }
 
   updateGameInfo() {
-    Game.io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
+    io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
   }
 
   getGameInfoPayload(): GameInfoPayload {
@@ -239,8 +232,6 @@ export class Game {
       players: Object.values(this.players).map(addPlayerInfo),
       gameStage: this.gameStage,
     };
-
-    console.log('gameInfo', payload);
 
     return payload;
   }
