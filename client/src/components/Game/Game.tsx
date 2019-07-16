@@ -7,46 +7,8 @@ import { LEAVE_GAME, TOGGLE_READY } from '../../../../shared/client-events';
 import { PLAYER_LEFT } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
-import { Button } from '../UI';
-import { CircleProgress } from '../UI/';
+import { Button, CircleProgress, Countdown } from '../UI';
 import { GameStages } from '../../../../shared/types';
-
-const Countdown = ({
-  start = 10,
-  end = 0,
-  step = 1,
-  interval = 1000,
-  render,
-}) => {
-  const [value, setValue] = React.useState(start);
-  const v = React.useRef(start);
-
-  React.useEffect(() => {
-    const s = Math.sign(end - start) * step;
-
-    const id = window.setInterval(() => {
-      v.current += s;
-
-      if (start > end && v.current <= end) {
-        window.clearInterval(id);
-      } else if (start < end && v.current >= end) {
-        window.clearInterval(id);
-      }
-
-      setValue(v.current);
-    }, interval);
-
-    return () => {
-      window.clearInterval(id);
-    };
-  }, []);
-
-  return render(value);
-};
-
-Countdown.defaultProps = {
-  render: (value: any) => null,
-};
 
 const Game = () => {
   const { appState, setAppState } = useAppState();
@@ -74,10 +36,6 @@ const Game = () => {
   const onReadyHandler = () => {
     socket.emit(TOGGLE_READY, appState.gameId);
   };
-
-  const startCountdown = () => {};
-
-  const onEveryBodyReady = () => {};
 
   if (!gameId || !gameInfo) {
     return null;

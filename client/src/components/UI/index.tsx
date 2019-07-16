@@ -3,3 +3,4 @@ export { Input } from './Input';
 
 export { CircleProgress } from './CircleProgress';
 export { Modal } from './Modal';
+export { Countdown } from './Countdown';
