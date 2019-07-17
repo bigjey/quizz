@@ -46,6 +46,8 @@ const Game = () => {
   const totalPlayers = gameInfo.players.length;
   const readyPlayers = gameInfo.players.filter(p => p.ready).length;
 
+  if (!player) return null;
+
   return (
     <div className="Game screen">
       <PlayerInfoContainer />
