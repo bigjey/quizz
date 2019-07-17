@@ -1,20 +1,19 @@
 import { io } from './socketServer';
 
-import { TOGGLE_READY } from './../../shared/client-events';
-
-import { Player, NewPlayer } from './Player';
-import { Game } from './Game';
-
+import { GameStages } from '../../shared/types';
+import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
 import {
   NEW_PLAYER,
   JOIN_GAME,
   NEW_GAME,
   LEAVE_GAME,
+  TOGGLE_READY,
+  CONNECTION,
+  DISCONNECT,
 } from '../../shared/client-events';
 
-import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
-
-import { GameStages } from '../../shared/types';
+import { Player, NewPlayer } from './Player';
+import { Game } from './Game';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -43,10 +42,10 @@ export const addSocketEvents = () => {
     );
   }
 
-  io.on('connection', function(socket) {
+  io.on(CONNECTION, function(socket: SocketIO.Socket) {
     Game.updateGames(socket);
 
-    socket.on(NEW_PLAYER, (p: NewPlayer) => {
+    const onNewPlayer = (p: NewPlayer) => {
       Player.Players[p.id] = new Player(socket, p);
       const game = gameByPlayer(p.id);
 
@@ -63,9 +62,10 @@ export const addSocketEvents = () => {
       }
 
       updatePlayers();
-    });
+      Game.updateGames();
+    };
 
-    socket.on('disconnect', () => {
+    const onDisconnect = () => {
       const p = playerBySocket(socket.id);
 
       if (!p) {
@@ -87,9 +87,10 @@ export const addSocketEvents = () => {
       }
 
       updatePlayers();
-    });
+      Game.updateGames();
+    };
 
-    socket.on(NEW_GAME, () => {
+    const onNewGame = () => {
       const p = playerBySocket(socket.id);
       if (!p) {
         return;
@@ -100,9 +101,12 @@ export const addSocketEvents = () => {
       Game.Games[game.id] = game;
 
       socket.emit(JOINED_GAME, game.id);
-    });
 
-    socket.on(JOIN_GAME, id => {
+      updatePlayers();
+      Game.updateGames();
+    };
+
+    const onJoinGame = (id: string) => {
       const game = Game.Games[id];
       const player = playerBySocket(socket.id);
 
@@ -112,9 +116,12 @@ export const addSocketEvents = () => {
 
       game.addPlayer(player.id, socket);
       socket.emit(JOINED_GAME, game.id);
-    });
 
-    socket.on(LEAVE_GAME, id => {
+      updatePlayers();
+      Game.updateGames();
+    };
+
+    const onLeaveGame = (id: string) => {
       const game = Game.Games[id];
       const player = playerBySocket(socket.id);
 
@@ -123,9 +130,12 @@ export const addSocketEvents = () => {
       }
 
       game.removePlayerFromGame(player.id);
-    });
 
-    socket.on(TOGGLE_READY, id => {
+      updatePlayers();
+      Game.updateGames();
+    };
+
+    const onToggleReady = (id: string) => {
       const game = Game.Games[id];
       const player = playerBySocket(socket.id);
 
@@ -134,6 +144,16 @@ export const addSocketEvents = () => {
       }
 
       game.togglePlayerReady(player.id);
-    });
+
+      updatePlayers();
+      Game.updateGames();
+    };
+
+    socket.on(DISCONNECT, onDisconnect);
+    socket.on(NEW_PLAYER, onNewPlayer);
+    socket.on(NEW_GAME, onNewGame);
+    socket.on(JOIN_GAME, onJoinGame);
+    socket.on(LEAVE_GAME, onLeaveGame);
+    socket.on(TOGGLE_READY, onToggleReady);
   });
 };

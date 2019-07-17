@@ -135,7 +135,6 @@ export class Game {
 
     s.join(this.id);
 
-    Game.updateGames();
     this.updateGameInfo();
   }
 
@@ -181,7 +180,6 @@ export class Game {
       }
     }
 
-    Game.updateGames();
     this.updateGameInfo();
   }
 
@@ -216,8 +214,6 @@ export class Game {
     } else if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
       this.stopLobbyCountDown();
     }
-
-    Game.updateGames();
 
     this.updateGameInfo();
   }
