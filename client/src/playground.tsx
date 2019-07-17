@@ -6,7 +6,7 @@ import { NewPlayer } from './components/NewPlayer';
 import { Button, Modal } from './components/UI';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { CircleProgress } from './components/UI/CircleProgress';
 
 const Example = ({ name = null, children }) => (
@@ -66,11 +66,52 @@ const ModalExample = () => {
         show modal
       </Button>
       <Modal onClose={() => showModal(false)} open={show}>
-        <Modal.Header>1</Modal.Header>
-        <Modal.Body>
-          <div style={{ height: 2000 }} />
-        </Modal.Body>
-        <Modal.Footer>3</Modal.Footer>
+        {({ closeModal }) => (
+          <>
+            <Modal.Header
+              style={{
+                fontSize: 24,
+              }}
+            >
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Similique
+              tempore assumenda mollitia reprehenderit sit, incidunt id quos
+              aperiam expedita, in iste accusamus vel quibusdam ullam, aut
+              dolore est culpa inventore?
+            </Modal.Header>
+            <Modal.Body>
+              <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum
+                eius dolor laboriosam voluptates commodi iusto quis, delectus
+                possimus eligendi! Fugiat, accusantium. Possimus natus,
+                veritatis dolore quibusdam at nihil aspernatur illo.
+              </p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button.Group>
+                <div style={{ display: 'flex', width: '100%' }}>
+                  <Button
+                    onClick={() => {
+                      closeModal();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    color="green"
+                    onClick={() => {
+                      closeModal();
+                    }}
+                    style={{
+                      flexGrow: 1,
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faCheck} /> Create
+                  </Button>
+                </div>
+              </Button.Group>
+            </Modal.Footer>
+          </>
+        )}
       </Modal>
     </div>
   );

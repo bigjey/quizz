@@ -1,6 +1,7 @@
 import './Button.scss';
 
-import React, { ReactNode } from 'react';
+import React from 'react';
+
 import c from 'classnames';
 
 interface ButtonProps {
@@ -10,7 +11,12 @@ interface ButtonProps {
   color?: 'default' | 'green' | 'blue';
 }
 
-const Button: React.FC<ButtonProps & React.HTMLProps<HTMLButtonElement>> = ({
+interface ButtonStaticProps {
+  Group: React.FC<React.HTMLProps<HTMLDivElement>>;
+}
+
+const Button: React.FC<ButtonProps & React.HTMLProps<HTMLButtonElement>> &
+  ButtonStaticProps = ({
   children,
   className = '',
   full,
@@ -38,6 +44,16 @@ Button.defaultProps = {
   type: 'button',
   variant: 'normal',
   color: 'default',
+};
+
+Button.Group = ({ children, className, ...rest }) => {
+  const classes = c('ButtonGroup', className);
+
+  return (
+    <div className={classes} {...rest}>
+      {children}
+    </div>
+  );
 };
 
 export { Button };

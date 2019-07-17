@@ -95,9 +95,10 @@
   width: 100%;
 }
 
-.Button > svg:first-child {
-  margin-right: 5px;
+.ButtonGroup {
+  margin: -8px;
 }
-.Button > svg:last-child {
-  margin-left: 5px;
+
+.ButtonGroup .Button {
+  margin: 8px;
 }

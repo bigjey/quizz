@@ -27,7 +27,7 @@
   background: #fff;
   margin: 16px;
   flex: 0 0 auto;
-  border-radius: 4px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
 }
@@ -37,16 +37,22 @@
 }
 
 .Modal--Header {
-  padding: 16px;
-  background: #f0f0f0;
-  border-radius: 4px 4px 0 0;
+  padding: 24px;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+}
+.Modal--Header-content {
+  flex-grow: 1;
+}
+.Modal--Header-close {
+  flex-shrink: 0;
+  margin-left: 24px;
 }
 .Modal--Body {
   flex-grow: 1;
-  padding: 16px;
+  padding: 24px;
 }
 .Modal--Footer {
-  padding: 16px;
-  background: #f0f0f0;
-  border-radius: 0 0 4px 4px;
+  padding: 24px;
+  border-radius: 0 0 16px 16px;
 }
