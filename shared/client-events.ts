@@ -5,3 +5,4 @@ export const LEAVE_GAME: string = 'leave-game';
 export const TOGGLE_READY: string = 'toggle-ready';
 export const CONNECTION: string = 'connection';
 export const DISCONNECT: string = 'disconnect';
+export const PLAYER_ANSWER: string = 'player-answer';

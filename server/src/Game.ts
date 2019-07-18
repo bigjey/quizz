@@ -16,7 +16,9 @@ import {
   GameStages,
   GamesDataPayload,
   IGameConfig,
+  QuestionForGame,
 } from './../../shared/types';
+import { shuffle } from './../../shared/utils/shuffle';
 
 interface Option {
   text: string;
@@ -89,13 +91,17 @@ export class Game {
   hostId: string;
 
   id: string = null;
-  questions: Question[] = questions;
-  currentQuestion: number = 0;
   gameStage: GameStages = GameStages.LOBBY;
 
   players: GamePlayers = {};
   lobbyCountDown: NodeJS.Timeout;
   config: IGameConfig;
+
+  currentQuestion: number = 0;
+  questions: Question[] = null;
+
+  questionCountdown: NodeJS.Timeout;
+  questionResultsCountdown: NodeJS.Timeout;
 
   constructor(gConfig: IGameConfig, p: Player, s: Socket) {
     this.id = Math.random()
@@ -114,7 +120,7 @@ export class Game {
     const { category, numOfQuestions, difficulty } = this.config;
 
     try {
-      let url = `https://opentdb.com/api.php?amount=${numOfQuestions}&type=multiple`;
+      let url = `https://opentdb.com/api.php?amount=${3}&type=multiple`;
       if (category) {
         url += `&category=${category}`;
       }
@@ -198,6 +204,7 @@ export class Game {
 
     this.lobbyCountDown = setTimeout(() => {
       this.gameStage = GameStages.QUESTIONS;
+      this.nextQuestion();
       this.updateGameInfo();
     }, COUNTDOWN_TO_GAME_START);
   }
@@ -208,6 +215,28 @@ export class Game {
       this.gameStage = GameStages.LOBBY;
       clearTimeout(this.lobbyCountDown);
     }
+  }
+
+  nextQuestion() {
+    if (this.currentQuestion === this.questions.length) {
+      this.gameStage = GameStages.GAME_OVER;
+    } else {
+      this.currentQuestion++;
+      this.gameStage = GameStages.QUESTIONS;
+      this.questionCountdown = setTimeout(() => {
+        this.gameStage = GameStages.RESULTS;
+        this.startQuestionResultsCountdown();
+        this.updateGameInfo();
+      }, 3000);
+    }
+  }
+
+  startQuestionResultsCountdown() {
+    this.questionResultsCountdown = setTimeout(() => {
+      this.gameStage = GameStages.QUESTIONS;
+      this.nextQuestion();
+      this.updateGameInfo();
+    }, 2000);
   }
 
   togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
@@ -222,8 +251,42 @@ export class Game {
     this.updateGameInfo();
   }
 
+  registerAnswer(pId: string, answer: string) {
+    this.players[pId].answers[this.currentQuestion] = answer;
+  }
+
+  sanitizeQuestion(q: Question): QuestionForGame {
+    const answers = shuffle([q.correct_answer, ...q.incorrect_answers]);
+
+    return {
+      question: q.question,
+      answers,
+    };
+  }
+
   updateGameInfo() {
-    io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
+    const gameInfo = this.getGameInfoPayload();
+
+    if (this.gameStage === GameStages.QUESTIONS) {
+      gameInfo.question = this.sanitizeQuestion(
+        this.questions[this.currentQuestion - 1]
+      );
+      gameInfo.questionNumber = this.currentQuestion;
+    }
+
+    if (this.gameStage === GameStages.RESULTS) {
+      gameInfo.players.forEach(p => {
+        p.answer = this.players[p.id].answers[this.currentQuestion];
+      });
+    }
+
+    if (this.gameStage === GameStages.RESULTS) {
+      gameInfo.players.forEach(p => {
+        p.answers = this.players[p.id].answers;
+      });
+    }
+
+    io.to(this.id).emit(GAME_INFO, gameInfo);
   }
 
   getGameInfoPayload(): GameInfoPayload {

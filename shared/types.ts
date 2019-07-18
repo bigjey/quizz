@@ -15,6 +15,8 @@ export interface GameInfoPayload {
   id: string;
   players: GamePlayer[];
   gameStage: GameStages;
+  question?: QuestionForGame;
+  questionNumber?: number;
 }
 
 export interface IGamePlayer {
@@ -38,9 +40,14 @@ export class GamePlayer implements IGamePlayer {
   disconnected: boolean = false;
   ready: boolean = false;
   name: string = null;
+  answer?: string;
+  answers: {
+    [round: number]: string;
+  };
 
   constructor(id: string) {
     this.id = id;
+    this.answers = {};
   }
 }
 
@@ -49,4 +56,10 @@ export enum GameStages {
   LOBBY_COUNTDOWN,
   QUESTIONS,
   RESULTS,
+  GAME_OVER,
+}
+
+export interface QuestionForGame {
+  question: string;
+  answers: string[];
 }

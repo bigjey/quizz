@@ -1,3 +1,4 @@
+import { PLAYER_ANSWER } from './../../shared/client-events';
 import { io } from './socketServer';
 
 import { GameStages, IGameConfig } from '../../shared/types';
@@ -150,11 +151,24 @@ export const addSocketEvents = () => {
       Game.updateGames();
     };
 
+    const onPlayerAnswer = (answer: string) => {
+      const player = playerBySocket(socket.id);
+
+      if (!player) return;
+
+      const game = gameByPlayer(player.id);
+
+      if (!game) return;
+
+      game.registerAnswer(player.id, answer);
+    };
+
     socket.on(DISCONNECT, onDisconnect);
     socket.on(NEW_PLAYER, onNewPlayer);
     socket.on(NEW_GAME, onNewGame);
     socket.on(JOIN_GAME, onJoinGame);
     socket.on(LEAVE_GAME, onLeaveGame);
     socket.on(TOGGLE_READY, onToggleReady);
+    socket.on(PLAYER_ANSWER, onPlayerAnswer);
   });
 };
