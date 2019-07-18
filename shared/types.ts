@@ -24,6 +24,15 @@ export interface IGamePlayer {
   name?: string;
 }
 
+export interface IGameConfig {
+  name: string;
+  password: string;
+  category: number;
+  difficulty: 'any' | 'easy' | 'medium' | 'hard';
+  numOfQuestions: number;
+  maxPlayers: number;
+}
+
 export class GamePlayer implements IGamePlayer {
   id: string = null;
   disconnected: boolean = false;

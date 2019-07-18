@@ -1,6 +1,6 @@
 import { io } from './socketServer';
 
-import { GameStages } from '../../shared/types';
+import { GameStages, IGameConfig } from '../../shared/types';
 import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
 import {
   NEW_PLAYER,
@@ -90,13 +90,14 @@ export const addSocketEvents = () => {
       Game.updateGames();
     };
 
-    const onNewGame = () => {
+    const onNewGame = (gameConfig: IGameConfig) => {
       const p = playerBySocket(socket.id);
+
       if (!p) {
         return;
       }
 
-      const game = new Game(p, socket);
+      const game = new Game(gameConfig, p, socket);
 
       Game.Games[game.id] = game;
 
