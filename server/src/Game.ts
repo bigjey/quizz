@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-
+import axios from 'axios';
 import { Player } from './Player';
 
 import { io } from './socketServer';
@@ -15,6 +15,7 @@ import {
   GamePlayer,
   GameStages,
   GamesDataPayload,
+  IGameConfig,
 } from './../../shared/types';
 
 interface Option {
@@ -23,51 +24,26 @@ interface Option {
 }
 
 interface Question {
-  text: string;
-  options: Option[];
+  category: string;
+  type: string;
+  difficulty: string;
+  question: string;
+  correct_answer: string;
+  incorrect_answers: string[];
 }
 
 const questions = [
   {
-    text: 'Are you bored?',
-    options: [
-      {
-        text: 'Ofc',
-        correct: false,
-      },
-      {
-        text: 'Ofc no',
-        correct: false,
-      },
-      {
-        text: 'Yes',
-        correct: false,
-      },
-      {
-        text: 'Da',
-        correct: true,
-      },
-    ],
-  },
-  {
-    text: 'Will you ever do it again?',
-    options: [
-      {
-        text: 'Ofc',
-        correct: false,
-      },
-      {
-        text: 'Ofc no',
-        correct: true,
-      },
-      {
-        text: 'Yes',
-        correct: false,
-      },
-      {
-        text: 'Da',
-        correct: false,
-      },
+    category: 'Entertainment: Books',
+    type: 'multiple',
+    difficulty: 'easy',
+    question:
+      'George Orwell wrote this book, which is often considered a statement on government oversight.',
+    correct_answer: '1984',
+    incorrect_answers: [
+      'The Old Man and the Sea',
+      'Catcher and the Rye',
+      'To Kill a Mockingbird',
     ],
   },
 ];
@@ -119,15 +95,43 @@ export class Game {
 
   players: GamePlayers = {};
   lobbyCountDown: NodeJS.Timeout;
+  config: IGameConfig;
 
-  constructor(p: Player, s: Socket) {
+  constructor(gConfig: IGameConfig, p: Player, s: Socket) {
     this.id = Math.random()
       .toString()
       .slice(2, 10);
 
+    this.config = gConfig;
+    this.setupGame();
+
     this.hostId = p.id;
 
     this.addPlayer(p.id, s);
+  }
+
+  async setupGame() {
+    const { category, numOfQuestions, difficulty } = this.config;
+
+    try {
+      let url = `https://opentdb.com/api.php?amount=${numOfQuestions}&type=multiple`;
+      if (category) {
+        url += `&category=${category}`;
+      }
+      if (difficulty) {
+        url += `&difficulty=${difficulty}`;
+      }
+
+      const opentdbJSON = await axios.get(url);
+
+      const {
+        data: { results },
+      } = opentdbJSON;
+
+      this.questions = results;
+    } catch (error) {
+      console.error(`Ooops, smth went wrong with this ${error}`);
+    }
   }
 
   addPlayer(id: string, s: Socket) {
