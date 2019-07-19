@@ -34,6 +34,10 @@ interface Question {
   incorrect_answers: string[];
 }
 
+interface GamePlayers {
+  [playerId: string]: GamePlayer;
+}
+
 const questions = [
   {
     category: 'Entertainment: Books',
@@ -50,10 +54,6 @@ const questions = [
   },
 ];
 
-interface GamePlayers {
-  [playerId: string]: GamePlayer;
-}
-
 const addPlayerInfo = (p: GamePlayer) => {
   return {
     ...p,
@@ -61,6 +61,9 @@ const addPlayerInfo = (p: GamePlayer) => {
   };
 };
 
+const NEXT_QUESTION_COUNTDOWN: number = 10000;
+const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
+const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
 export class Game {
   static Games: {
     [key: string]: Game;
@@ -203,7 +206,6 @@ export class Game {
     this.gameStage = GameStages.LOBBY_COUNTDOWN;
 
     this.lobbyCountDown = setTimeout(() => {
-      this.gameStage = GameStages.QUESTIONS;
       this.nextQuestion();
       this.updateGameInfo();
     }, COUNTDOWN_TO_GAME_START);
@@ -224,19 +226,26 @@ export class Game {
       this.currentQuestion++;
       this.gameStage = GameStages.QUESTIONS;
       this.questionCountdown = setTimeout(() => {
-        this.gameStage = GameStages.RESULTS;
-        this.startQuestionResultsCountdown();
+        this.gameStage = GameStages.INTERMEDIATE_RESULTS;
+        this.startIntermediateResultsCountdown();
         this.updateGameInfo();
-      }, 3000);
+      }, NEXT_QUESTION_COUNTDOWN);
     }
   }
 
-  startQuestionResultsCountdown() {
+  startIntermediateResultsCountdown() {
     this.questionResultsCountdown = setTimeout(() => {
-      this.gameStage = GameStages.QUESTIONS;
+      this.gameStage = GameStages.ROUND_END_RESULTS;
+      this.startRoundEndResultsCountdown();
+      this.updateGameInfo();
+    }, INTERMEDIATE_RESULTS_VISIBILITY_TIME);
+  }
+
+  startRoundEndResultsCountdown() {
+    this.questionResultsCountdown = setTimeout(() => {
       this.nextQuestion();
       this.updateGameInfo();
-    }, 2000);
+    }, ROUND_END_RESULTS_VISIBILITY_TIME);
   }
 
   togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
@@ -264,6 +273,10 @@ export class Game {
     };
   }
 
+  checkIfAnswerCorrect(answer: string): boolean {
+    return this.questions.some(q => q.correct_answer === answer);
+  }
+
   updateGameInfo() {
     const gameInfo = this.getGameInfoPayload();
 
@@ -274,15 +287,19 @@ export class Game {
       gameInfo.questionNumber = this.currentQuestion;
     }
 
-    if (this.gameStage === GameStages.RESULTS) {
-      gameInfo.players.forEach(p => {
-        p.answer = this.players[p.id].answers[this.currentQuestion];
-      });
+    if (this.gameStage === GameStages.INTERMEDIATE_RESULTS) {
+      gameInfo.correctAnswer = this.questions[
+        this.currentQuestion - 1
+      ].correct_answer;
     }
 
-    if (this.gameStage === GameStages.RESULTS) {
+    if (this.gameStage === GameStages.ROUND_END_RESULTS) {
       gameInfo.players.forEach(p => {
-        p.answers = this.players[p.id].answers;
+        const text = this.players[p.id].answers[this.currentQuestion];
+        p.answer = {
+          text,
+          isCorrect: this.checkIfAnswerCorrect(text),
+        };
       });
     }
 

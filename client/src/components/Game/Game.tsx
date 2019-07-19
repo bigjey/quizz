@@ -131,6 +131,7 @@ const Game = () => {
           <h2>{gameInfo.question.question}</h2>
           <br />
           <div className="Game--answers">
+            {console.log('question', gameInfo.players)}
             {gameInfo.question.answers.map(text => (
               <Button
                 disabled={answered}
@@ -145,11 +146,16 @@ const Game = () => {
         </div>
       )}
 
-      {gameInfo.gameStage === GameStages.RESULTS && (
+      {gameInfo.gameStage === GameStages.INTERMEDIATE_RESULTS && (
+        <div>{gameInfo.correctAnswer}</div>
+      )}
+
+      {gameInfo.gameStage === GameStages.ROUND_END_RESULTS && (
         <div>
           {gameInfo.players.map(p => (
             <div>
-              {p.name}: {p.answer}
+              {p.name}: {p.answer.text} (
+              {p.answer.isCorrect ? 'Correct' : 'Wrong'})
             </div>
           ))}
         </div>
@@ -169,6 +175,8 @@ const Game = () => {
           ))}
         </div>
       )}
+
+      {/* <pre>{JSON.stringify(gameInfo, null, 2)}</pre> */}
 
       {(gameInfo.gameStage === GameStages.LOBBY ||
         gameInfo.gameStage === GameStages.LOBBY_COUNTDOWN) && (

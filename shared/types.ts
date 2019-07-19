@@ -17,6 +17,7 @@ export interface GameInfoPayload {
   gameStage: GameStages;
   question?: QuestionForGame;
   questionNumber?: number;
+  correctAnswer?: string;
 }
 
 export interface IGamePlayer {
@@ -34,13 +35,16 @@ export interface IGameConfig {
   numOfQuestions: number;
   maxPlayers: number;
 }
-
+export interface IAnswer {
+  text: string;
+  isCorrect: boolean;
+}
 export class GamePlayer implements IGamePlayer {
   id: string = null;
   disconnected: boolean = false;
   ready: boolean = false;
   name: string = null;
-  answer?: string;
+  answer?: IAnswer;
   answers: {
     [round: number]: string;
   };
@@ -55,7 +59,8 @@ export enum GameStages {
   LOBBY,
   LOBBY_COUNTDOWN,
   QUESTIONS,
-  RESULTS,
+  INTERMEDIATE_RESULTS,
+  ROUND_END_RESULTS,
   GAME_OVER,
 }
 
