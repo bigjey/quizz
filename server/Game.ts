@@ -4,12 +4,8 @@ import { Player } from './Player';
 
 import { io } from './socketServer';
 
-import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from './../../shared/constants';
-import {
-  GAME_INFO,
-  PLAYER_LEFT,
-  GAMES_DATA,
-} from './../../shared/server-events';
+import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from '../shared/constants';
+import { GAME_INFO, PLAYER_LEFT, GAMES_DATA } from '../shared/server-events';
 import {
   GameInfoPayload,
   GamePlayer,
@@ -17,8 +13,8 @@ import {
   GamesDataPayload,
   IGameConfig,
   QuestionForGame,
-} from './../../shared/types';
-import { shuffle } from './../../shared/utils/shuffle';
+} from '../shared/types';
+import { shuffle } from '../shared/utils/shuffle';
 
 interface Option {
   text: string;

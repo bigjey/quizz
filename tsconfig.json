@@ -4,9 +4,10 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true,
-    "esModuleInterop": true
+    "sourceMap": false,
+    "esModuleInterop": true,
+    "outDir": "./dist"
   },
-  "include": ["**/*.ts"],
+  "include": ["./server/index.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
