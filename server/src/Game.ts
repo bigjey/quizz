@@ -92,6 +92,7 @@ export class Game {
   }
 
   hostId: string;
+  sanitizedQuestion: QuestionForGame;
 
   id: string = null;
   gameStage: GameStages = GameStages.LOBBY;
@@ -224,6 +225,9 @@ export class Game {
       this.gameStage = GameStages.GAME_OVER;
     } else {
       this.currentQuestion++;
+      this.sanitizedQuestion = this.sanitizeQuestion(
+        this.questions[this.currentQuestion - 1]
+      );
       this.gameStage = GameStages.QUESTIONS;
       this.questionCountdown = setTimeout(() => {
         this.gameStage = GameStages.INTERMEDIATE_RESULTS;
@@ -280,10 +284,11 @@ export class Game {
   updateGameInfo() {
     const gameInfo = this.getGameInfoPayload();
 
-    if (this.gameStage === GameStages.QUESTIONS) {
-      gameInfo.question = this.sanitizeQuestion(
-        this.questions[this.currentQuestion - 1]
-      );
+    if (
+      this.gameStage === GameStages.QUESTIONS ||
+      this.gameStage === GameStages.INTERMEDIATE_RESULTS
+    ) {
+      gameInfo.question = this.sanitizedQuestion;
       gameInfo.questionNumber = this.currentQuestion;
     }
 

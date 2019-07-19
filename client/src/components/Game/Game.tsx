@@ -18,7 +18,7 @@ const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
 
-  const [answered, setAnswered] = React.useState(false);
+  const [playerAnswer, setPlayerAnswer] = React.useState(null);
 
   const round = gameInfo ? gameInfo.questionNumber : null;
 
@@ -34,7 +34,7 @@ const Game = () => {
   }, []);
 
   React.useEffect(() => {
-    setAnswered(false);
+    setPlayerAnswer(null);
   }, [round]);
 
   const onLeaveHandler = () => {
@@ -118,7 +118,8 @@ const Game = () => {
         />
       )}
 
-      {gameInfo.gameStage === GameStages.QUESTIONS && (
+      {(gameInfo.gameStage === GameStages.QUESTIONS ||
+        gameInfo.gameStage === GameStages.INTERMEDIATE_RESULTS) && (
         <div style={{ textAlign: 'center' }}>
           <div
             style={{
@@ -128,26 +129,38 @@ const Game = () => {
           >
             Round {gameInfo.questionNumber}
           </div>
-          <h2>{gameInfo.question.question}</h2>
+          <h2
+            dangerouslySetInnerHTML={{ __html: gameInfo.question.question }}
+          />
           <br />
           <div className="Game--answers">
-            {console.log('question', gameInfo.players)}
-            {gameInfo.question.answers.map(text => (
-              <Button
-                disabled={answered}
-                dangerouslySetInnerHTML={{ __html: text }}
-                onClick={() => {
-                  socket.emit(PLAYER_ANSWER, text);
-                  setAnswered(true);
-                }}
-              />
-            ))}
+            {gameInfo.question.answers.map(text => {
+              const styles: any = {};
+              if (gameInfo.gameStage === GameStages.INTERMEDIATE_RESULTS) {
+                if (text === gameInfo.correctAnswer) {
+                  styles.backgroundColor = 'green';
+                } else if (text === playerAnswer) {
+                  styles.backgroundColor = 'red';
+                }
+              } else if (gameInfo.gameStage === GameStages.QUESTIONS) {
+                if (text === playerAnswer) {
+                  styles.backgroundColor = 'blue';
+                }
+              }
+              return (
+                <Button
+                  disabled={playerAnswer}
+                  dangerouslySetInnerHTML={{ __html: text }}
+                  style={styles}
+                  onClick={() => {
+                    socket.emit(PLAYER_ANSWER, text);
+                    setPlayerAnswer(text);
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {gameInfo.gameStage === GameStages.INTERMEDIATE_RESULTS && (
-        <div>{gameInfo.correctAnswer}</div>
       )}
 
       {gameInfo.gameStage === GameStages.ROUND_END_RESULTS && (
