@@ -120,7 +120,7 @@ export class Game {
     const { category, numOfQuestions, difficulty } = this.config;
 
     try {
-      let url = `https://opentdb.com/api.php?amount=${3}&type=multiple`;
+      let url = `https://opentdb.com/api.php?amount=${numOfQuestions}&type=multiple`;
       if (category) {
         url += `&category=${category}`;
       }
