@@ -1,8 +1,8 @@
-import { PLAYER_ANSWER } from './../../shared/client-events';
+import { PLAYER_ANSWER } from '../shared/client-events';
 import { io } from './socketServer';
 
-import { GameStages, IGameConfig } from '../../shared/types';
-import { JOINED_GAME, PLAYERS_DATA } from '../../shared/server-events';
+import { GameStages, IGameConfig } from '../shared/types';
+import { JOINED_GAME, PLAYERS_DATA } from '../shared/server-events';
 import {
   NEW_PLAYER,
   JOIN_GAME,
@@ -11,7 +11,7 @@ import {
   TOGGLE_READY,
   CONNECTION,
   DISCONNECT,
-} from '../../shared/client-events';
+} from '../shared/client-events';
 
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
