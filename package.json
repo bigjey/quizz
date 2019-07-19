@@ -2,12 +2,16 @@
   "name": "Quizz",
   "version": "1.0.0",
   "license": "MIT",
+  "main": "./dist/server/index.js",
   "scripts": {
-    "dev:server": "npx nodemon --exec npx ts-node ./server/src/index.ts --watch *.ts",
+    "start": "node ./dist/server/index.js",
+    "dev:server": "npx nodemon --exec npx ts-node ./server/index.ts --watch *.ts",
     "dev:client": "npx parcel ./client/src/{playground,index}.html --open",
-    "build:client": "npx parcel build ./client/src/index.html -d ./client/dist",
-    "server": "yarn run dev:server",
-    "g": "node ./scripts/generateCode"
+    "build": "npx rimraf ./dist && yarn build:server && yarn build:client",
+    "build:server": "npx tsc",
+    "build:client": "npx parcel build --no-source-maps ./client/src/index.html -d ./dist/client",
+    "g": "node ./scripts/generateCode",
+    "postinstall": "yarn build"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.19",
@@ -26,6 +30,7 @@
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "rimraf": "^2.6.3",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "tsc": "^1.20150623.0",
