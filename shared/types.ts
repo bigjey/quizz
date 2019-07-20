@@ -1,7 +1,10 @@
+type GameDifficulty = 'easy' | 'medium' | 'hard';
+
 export interface GamesListItem {
   id: string;
-  maxPlayers: number;
+  hostName?: string;
   playersCount: number;
+  config: IGameConfig;
 }
 
 export type GamesDataPayload = GamesListItem[];
@@ -18,6 +21,7 @@ export interface GameInfoPayload {
   question?: QuestionForGame;
   questionNumber?: number;
   correctAnswer?: string;
+  results?: any;
 }
 
 export interface IGamePlayer {
@@ -30,8 +34,11 @@ export interface IGamePlayer {
 export interface IGameConfig {
   name: string;
   password: string;
-  category: number;
-  difficulty: 'any' | 'easy' | 'medium' | 'hard';
+  category: {
+    id: number;
+    name: string;
+  };
+  difficulty: GameDifficulty;
   numOfQuestions: number;
   maxPlayers: number;
 }

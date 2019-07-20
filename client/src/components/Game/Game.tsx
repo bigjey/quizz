@@ -89,6 +89,8 @@ const Game = () => {
         </div>
       )}
 
+      {/* <pre>{JSON.stringify(gameInfo, null, 2)}</pre> */}
+
       {(gameInfo.gameStage === GameStages.LOBBY ||
         gameInfo.gameStage === GameStages.LOBBY_COUNTDOWN) && (
         <>
@@ -175,21 +177,14 @@ const Game = () => {
       )}
 
       {gameInfo.gameStage === GameStages.GAME_OVER && (
-        <div>
-          {gameInfo.players.map(p => (
-            <>
-              {p.name}
-              <ol>
-                {Object.values(p.answers).map(text => (
-                  <li dangerouslySetInnerHTML={{ __html: text }} />
-                ))}
-              </ol>
-            </>
+        <ol style={{ padding: 16 }}>
+          {gameInfo.results.map(r => (
+            <li>
+              {r.name}: {r.score}
+            </li>
           ))}
-        </div>
+        </ol>
       )}
-
-      {/* <pre>{JSON.stringify(gameInfo, null, 2)}</pre> */}
 
       {(gameInfo.gameStage === GameStages.LOBBY ||
         gameInfo.gameStage === GameStages.LOBBY_COUNTDOWN) && (

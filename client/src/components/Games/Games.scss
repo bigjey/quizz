@@ -28,6 +28,7 @@
   justify-content: center;
 }
 .Games--game-join {
+  margin-left: 20px;
 }
 
 .Games--empty {
@@ -40,4 +41,27 @@
 .Games--empty svg {
   font-size: 100px;
   margin-bottom: 25px;
+}
+
+.Games--game-name {
+  font-size: 24px;
+}
+.Games--game-host {
+  color: #999;
+  font-size: 18px;
+}
+
+.Games--game-meta {
+  margin-top: 10px;
+}
+
+.Games--game-meta-box {
+  margin: 4px 0;
+}
+
+.Games--game-meta-box > span {
+  color: #777;
+  display: inline-block;
+  min-width: 80px;
+  font-weight: 300;
 }

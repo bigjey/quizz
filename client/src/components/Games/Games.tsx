@@ -24,14 +24,34 @@ const Games: React.FC<GamesProps> = ({
 
   const GameItem: React.FC<GamesListItem> = ({
     id,
+    config,
+    hostName,
     playersCount,
-    maxPlayers,
   }) => (
     <div className="Games--game" onClick={() => onJoinGameClick(id)}>
       <div className="Games--game-details">
-        <div className="Games--game-name">{id}</div>
+        <div className="Games--game-name">
+          {name ? (
+            name
+          ) : hostName ? (
+            <>
+              {hostName}
+              <span className="Games--game-host">#{id}</span>
+            </>
+          ) : (
+            id
+          )}{' '}
+          ({playersCount}/{config.maxPlayers})
+        </div>
         <div className="Games--game-meta">
-          {playersCount} / {maxPlayers}
+          <div className="Games--game-meta-box">
+            <span>difficulty:</span>{' '}
+            {config.difficulty ? config.difficulty : 'Any'}
+          </div>
+          <div className="Games--game-meta-box">
+            <span>category:</span>{' '}
+            {config.category ? config.category.name : 'Any'}
+          </div>
         </div>
       </div>
       <div className="Games--game-actions">

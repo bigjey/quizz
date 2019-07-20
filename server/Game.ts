@@ -1,3 +1,4 @@
+import { GamesListItem } from './../shared/types';
 import { Socket } from 'socket.io';
 import axios from 'axios';
 import { Player } from './Player';
@@ -34,22 +35,6 @@ interface GamePlayers {
   [playerId: string]: GamePlayer;
 }
 
-const questions = [
-  {
-    category: 'Entertainment: Books',
-    type: 'multiple',
-    difficulty: 'easy',
-    question:
-      'George Orwell wrote this book, which is often considered a statement on government oversight.',
-    correct_answer: '1984',
-    incorrect_answers: [
-      'The Old Man and the Sea',
-      'Catcher and the Rye',
-      'To Kill a Mockingbird',
-    ],
-  },
-];
-
 const addPlayerInfo = (p: GamePlayer) => {
   return {
     ...p,
@@ -67,18 +52,25 @@ export class Game {
 
   static updateGames(socket?: Socket) {
     const payload: GamesDataPayload = Object.values(this.Games)
-      .filter(g => {
-        if (g.gameStage !== GameStages.LOBBY) return false;
+      .filter(
+        (g): boolean => {
+          if (g.gameStage !== GameStages.LOBBY) return false;
 
-        if (Object.keys(g.players).length === MAX_PLAYERS) return false;
+          if (Object.keys(g.players).length === MAX_PLAYERS) return false;
 
-        return true;
-      })
-      .map((g: Game) => ({
-        id: g.id,
-        maxPlayers: MAX_PLAYERS,
-        playersCount: Object.keys(g.players).length,
-      }));
+          return true;
+        }
+      )
+      .map(
+        (g: Game): GamesListItem => ({
+          id: g.id,
+          hostName: Player.Players[g.hostId]
+            ? Player.Players[g.hostId].name
+            : null,
+          playersCount: Object.keys(g.players).length,
+          config: g.config,
+        })
+      );
 
     if (socket) {
       socket.emit(GAMES_DATA, payload);
@@ -106,7 +98,7 @@ export class Game {
   constructor(gConfig: IGameConfig, p: Player, s: Socket) {
     this.id = Math.random()
       .toString()
-      .slice(2, 10);
+      .slice(2, 7);
 
     this.config = gConfig;
     this.setupGame();
@@ -122,7 +114,7 @@ export class Game {
     try {
       let url = `https://opentdb.com/api.php?amount=${numOfQuestions}&type=multiple`;
       if (category) {
-        url += `&category=${category}`;
+        url += `&category=${category.id}`;
       }
       if (difficulty) {
         url += `&difficulty=${difficulty}`;
@@ -302,6 +294,23 @@ export class Game {
           isCorrect: this.checkIfAnswerCorrect(text),
         };
       });
+    }
+
+    if (this.gameStage === GameStages.GAME_OVER) {
+      gameInfo.results = Object.values(this.players)
+        .map(player => {
+          const name = Player.Players[player.id].name;
+          return {
+            name,
+            score: this.questions.reduce((score, question, round) => {
+              if (player.answers[round + 1] === question.correct_answer) {
+                score += 1;
+              }
+              return score;
+            }, 0),
+          };
+        })
+        .sort((pr1, pr2) => pr2.score - pr1.score);
     }
 
     io.to(this.id).emit(GAME_INFO, gameInfo);

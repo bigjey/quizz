@@ -12,7 +12,7 @@ const defaultFormData: IGameConfig = {
   maxPlayers: 4,
   difficulty: null,
   category: null,
-  numOfQuestions: 10,
+  numOfQuestions: 5,
 };
 
 const difficulties = ['easy', 'medium', 'hard'];
@@ -53,6 +53,9 @@ const ConfigForm = ({ closeModal, onSubmitHandler }) => {
     e.preventDefault();
 
     closeModal();
+
+    formData.category = categories.find(c => c.id == formData.category);
+
     onSubmitHandler(formData);
   };
 
