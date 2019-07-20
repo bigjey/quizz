@@ -3,7 +3,7 @@ import { render } from 'react-dom';
 
 import { Page } from './components/Page';
 import { NewPlayer } from './components/NewPlayer';
-import { Button, Modal } from './components/UI';
+import { Button, Modal, Countdown } from './components/UI';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -15,43 +15,6 @@ const Example = ({ name = null, children }) => (
     {children}
   </div>
 );
-
-const Countdown = ({
-  start = 10,
-  end = 0,
-  step = 1,
-  interval = 1000,
-  render,
-}) => {
-  const [value, setValue] = React.useState(start);
-  const v = React.useRef(start);
-
-  React.useEffect(() => {
-    const s = Math.sign(end - start) * step;
-
-    const id = window.setInterval(() => {
-      v.current += s;
-
-      if (start > end && v.current <= end) {
-        window.clearInterval(id);
-      } else if (start < end && v.current >= end) {
-        window.clearInterval(id);
-      }
-
-      setValue(v.current);
-    }, interval);
-
-    return () => {
-      window.clearInterval(id);
-    };
-  }, []);
-
-  return render(value);
-};
-
-Countdown.defaultProps = {
-  render: (value: any) => null,
-};
 
 const ModalExample = () => {
   const [show, showModal] = React.useState(false);
@@ -121,6 +84,38 @@ render(
   <Page>
     <ModalExample />
     <Example>
+      <Countdown
+        start={5}
+        end={0}
+        render={v => (
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <>
+              <div
+                style={{
+                  position: 'absolute',
+                  display: 'flex',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  textAlign: 'center',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  fontSize: 24,
+                }}
+              >
+                {v}
+              </div>
+              <CircleProgress
+                radius={50}
+                reverse
+                thickness={4}
+                percentage={100 - v * 20}
+              />
+            </>
+          </div>
+        )}
+      />
       <Countdown
         start={0}
         end={10}

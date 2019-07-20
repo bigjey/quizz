@@ -37,3 +37,18 @@
     }
   }
 }
+
+.Game--players--counter {
+  margin-top: 8px;
+}
+
+.Game--header {
+  flex-shrink: 0;
+}
+.Game--content {
+  flex-grow: 1;
+}
+.Game--footer {
+  text-align: center;
+  flex-shrink: 0;
+}

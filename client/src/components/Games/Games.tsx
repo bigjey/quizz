@@ -64,7 +64,16 @@ const Games: React.FC<GamesProps> = ({
 
   return (
     <div className="Games screen">
-      <PlayerInfoContainer />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}
+      >
+        <div style={{ flexGrow: 1 }} />
+        <PlayerInfoContainer />
+      </div>
 
       <div className="Games--list">
         {games.length === 0 && (

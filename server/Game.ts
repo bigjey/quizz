@@ -284,6 +284,7 @@ export class Game {
       gameInfo.correctAnswer = this.questions[
         this.currentQuestion - 1
       ].correct_answer;
+      gameInfo.questionNumber = this.currentQuestion;
     }
 
     if (this.gameStage === GameStages.ROUND_END_RESULTS) {
@@ -294,6 +295,7 @@ export class Game {
           isCorrect: this.checkIfAnswerCorrect(text),
         };
       });
+      gameInfo.questionNumber = this.currentQuestion;
     }
 
     if (this.gameStage === GameStages.GAME_OVER) {
