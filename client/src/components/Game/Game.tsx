@@ -49,6 +49,39 @@ const GameCountdown = props => (
   />
 );
 
+const PlayerRoundEndResults = ({ player }) => {
+  const {
+    name,
+    answer: { isCorrect, text },
+  } = player;
+
+  return (
+    <div>
+      <strong>{name}: </strong>
+      {text ? (
+        <>
+          <span>{text} </span>
+          <strong
+            style={{
+              color: isCorrect ? 'green' : 'red',
+            }}
+          >
+            ({isCorrect ? 'Correct' : 'Wrong'})
+          </strong>
+        </>
+      ) : (
+        <span
+          style={{
+            color: '#ccc',
+          }}
+        >
+          No answer received{' '}
+        </span>
+      )}
+    </div>
+  );
+};
+
 const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
@@ -177,10 +210,7 @@ const Game = () => {
               Round {gameInfo.questionNumber}
             </div>
             {gameInfo.players.map(p => (
-              <div>
-                {p.name}: {p.answer.text} (
-                {p.answer.isCorrect ? 'Correct' : 'Wrong'})
-              </div>
+              <PlayerRoundEndResults player={p} />
             ))}
           </div>
         )}
