@@ -252,8 +252,23 @@ export class Game {
     this.updateGameInfo();
   }
 
+  isEverybodyAnsweredInAdvance() {
+    return Object.values(this.players).every(player => {
+      const currAnswer = this.players[player.id].answers[this.currentQuestion];
+
+      return currAnswer;
+    });
+  }
+
   registerAnswer(pId: string, answer: string) {
     this.players[pId].answers[this.currentQuestion] = answer;
+
+    if (this.isEverybodyAnsweredInAdvance()) {
+      clearTimeout(this.questionCountdown);
+      this.gameStage = GameStages.ROUND_END_RESULTS;
+      this.startRoundEndResultsCountdown();
+      this.updateGameInfo();
+    }
   }
 
   sanitizeQuestion(q: Question): QuestionForGame {
