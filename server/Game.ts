@@ -265,8 +265,8 @@ export class Game {
 
     if (this.isEverybodyAnsweredInAdvance()) {
       clearTimeout(this.questionCountdown);
-      this.gameStage = GameStages.ROUND_END_RESULTS;
-      this.startRoundEndResultsCountdown();
+      this.gameStage = GameStages.INTERMEDIATE_RESULTS;
+      this.startIntermediateResultsCountdown();
       this.updateGameInfo();
     }
   }
