@@ -267,8 +267,9 @@ export class Game {
       clearTimeout(this.questionCountdown);
       this.gameStage = GameStages.INTERMEDIATE_RESULTS;
       this.startIntermediateResultsCountdown();
-      this.updateGameInfo();
     }
+
+    this.updateGameInfo();
   }
 
   sanitizeQuestion(q: Question): QuestionForGame {

@@ -82,6 +82,19 @@ const PlayerRoundEndResults = ({ player }) => {
   );
 };
 
+const CurrentRoundAnswers = ({ players }) => {
+  return (
+    <div>
+      Waiting for answer from:
+      <ul>
+        {players.map(player => (
+          <li key={player.id}>{player.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 const Game = () => {
   const { appState, setAppState } = useAppState();
   const { gameInfo, gameId } = appState;
@@ -125,6 +138,9 @@ const Game = () => {
   const player = gameInfo.players.find(p => p.id === appState.playerId);
   const totalPlayers = gameInfo.players.length;
   const readyPlayers = gameInfo.players.filter(p => p.ready).length;
+  const waitingForAnswerFromPlayers = gameInfo.players.filter(
+    p => !p.answers[round]
+  );
 
   if (!player) return null;
 
@@ -191,7 +207,10 @@ const Game = () => {
             <br />
             <div style={{ marginBottom: 16 }}>
               {gameInfo.gameStage === GameStages.QUESTIONS && (
-                <GameCountdown start={10} />
+                <>
+                  <GameCountdown start={10} />
+                  <CurrentRoundAnswers players={waitingForAnswerFromPlayers} />
+                </>
               )}
             </div>
             <br />
