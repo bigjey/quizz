@@ -86,7 +86,7 @@ const CurrentRoundAnswers = ({ players }) => {
   return (
     <div>
       Waiting for answer from:
-      <ul>
+      <ul className="Game--player-answer-stats">
         {players.map(player => (
           <li key={player.id}>{player.name}</li>
         ))}
