@@ -1,3 +1,4 @@
+import { socket } from './../client/src/socket';
 import { GamesListItem } from './../shared/types';
 import { Socket } from 'socket.io';
 import axios from 'axios';
@@ -6,7 +7,13 @@ import { Player } from './Player';
 import { io } from './socketServer';
 
 import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from '../shared/constants';
-import { GAME_INFO, PLAYER_LEFT, GAMES_DATA } from '../shared/server-events';
+import {
+  GAME_INFO,
+  PLAYER_LEFT,
+  GAMES_DATA,
+  GAME_IS_OVER,
+  GAME_IS_KILLED,
+} from '../shared/server-events';
 import {
   GameInfoPayload,
   GamePlayer,
@@ -42,9 +49,9 @@ const addPlayerInfo = (p: GamePlayer) => {
   };
 };
 
-const NEXT_QUESTION_COUNTDOWN: number = 10000;
-const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
-const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
+const NEXT_QUESTION_COUNTDOWN: number = 4000;
+const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 2000;
+const ROUND_END_RESULTS_VISIBILITY_TIME: number = 2000;
 export class Game {
   static Games: {
     [key: string]: Game;
@@ -94,6 +101,8 @@ export class Game {
 
   questionCountdown: NodeJS.Timeout;
   questionResultsCountdown: NodeJS.Timeout;
+  kickPlayersFromGameCountDown: NodeJS.Timeout;
+  killEmptyGamesCountDown: NodeJS.Timeout;
 
   constructor(gConfig: IGameConfig, p: Player, s: Socket) {
     this.id = Math.random()
@@ -180,6 +189,10 @@ export class Game {
       if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
         this.stopLobbyCountDown();
       }
+
+      if (player.socketId in io.sockets.sockets) {
+        io.sockets.sockets[player.socketId].leave(this.id);
+      }
     }
 
     this.updateGameInfo();
@@ -240,6 +253,36 @@ export class Game {
     }, ROUND_END_RESULTS_VISIBILITY_TIME);
   }
 
+  startKillGame(gameId: string) {
+    this.killEmptyGamesCountDown = setTimeout(() => {
+      io.to(this.id).emit(GAME_IS_KILLED, {
+        message: `game #${this.id} was destroyed cuz all players have left`,
+      });
+
+      if (this.id in io.sockets.sockets) {
+        io.sockets.sockets[this.id].leave(this.id);
+      }
+
+      delete Game.Games[gameId];
+
+      Game.updateGames();
+    }, ROUND_END_RESULTS_VISIBILITY_TIME);
+  }
+
+  startKickAllPlayersCountdown() {
+    this.kickPlayersFromGameCountDown = setTimeout(() => {
+      io.to(this.id).emit(GAME_IS_OVER, {
+        message: `sorry dude, but this game ${
+          this.id
+        } is over for you and your dumb ass friends`,
+      });
+
+      Object.keys(this.players).forEach(palyerId => {
+        this.removePlayerFromGame(palyerId);
+      });
+    }, ROUND_END_RESULTS_VISIBILITY_TIME);
+  }
+
   togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
     this.players[id].ready = ready;
 
@@ -287,6 +330,15 @@ export class Game {
   updateGameInfo() {
     const gameInfo = this.getGameInfoPayload();
 
+    if (this.gameStage === GameStages.LOBBY) {
+      clearTimeout(this.kickPlayersFromGameCountDown);
+      clearTimeout(this.killEmptyGamesCountDown);
+
+      if (this.id && !Object.keys(this.players).length) {
+        this.startKillGame(this.id);
+      }
+    }
+
     if (
       this.gameStage === GameStages.QUESTIONS ||
       this.gameStage === GameStages.INTERMEDIATE_RESULTS
@@ -328,6 +380,8 @@ export class Game {
           };
         })
         .sort((pr1, pr2) => pr2.score - pr1.score);
+
+      this.startKickAllPlayersCountdown();
     }
 
     io.to(this.id).emit(GAME_INFO, gameInfo);

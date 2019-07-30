@@ -8,7 +8,7 @@ import {
   TOGGLE_READY,
   PLAYER_ANSWER,
 } from '../../../../shared/client-events';
-import { PLAYER_LEFT } from '../../../../shared/server-events';
+import { PLAYER_LEFT, GAME_IS_OVER } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
 import { Button, CircleProgress, Countdown } from '../UI';
@@ -94,10 +94,21 @@ const Game = () => {
     const onPlayerLeft = message => {
       console.log(message);
     };
+
+    const onGameOver = message => {
+      console.log('It is over biatch!: ', message);
+      setAppState({
+        ...appState,
+        gameId: null,
+      });
+    };
+
     socket.on(PLAYER_LEFT, onPlayerLeft);
+    socket.on(GAME_IS_OVER, onGameOver);
 
     return () => {
       socket.off(PLAYER_LEFT, onPlayerLeft);
+      socket.off(GAME_IS_OVER, onGameOver);
     };
   }, []);
 
@@ -125,6 +136,8 @@ const Game = () => {
   const player = gameInfo.players.find(p => p.id === appState.playerId);
   const totalPlayers = gameInfo.players.length;
   const readyPlayers = gameInfo.players.filter(p => p.ready).length;
+
+  console.log('gameStage: ', gameInfo.gameStage);
 
   if (!player) return null;
 
