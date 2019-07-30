@@ -11,7 +11,7 @@ import { GamesDataPayload, IGameConfig } from '../../../../shared/types';
 import { Games } from './Games';
 
 const GamesContainer = () => {
-  const { appState, setAppState } = useAppState();
+  const { appState } = useAppState();
 
   const onConfigFormSubmit = (config: IGameConfig) => {
     socket.emit(NEW_GAME, config);
