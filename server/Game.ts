@@ -12,7 +12,6 @@ import {
   PLAYER_LEFT,
   GAMES_DATA,
   GAME_IS_OVER,
-  GAME_IS_KILLED,
 } from '../shared/server-events';
 import {
   GameInfoPayload,
@@ -49,9 +48,9 @@ const addPlayerInfo = (p: GamePlayer) => {
   };
 };
 
-const NEXT_QUESTION_COUNTDOWN: number = 4000;
-const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 2000;
-const ROUND_END_RESULTS_VISIBILITY_TIME: number = 2000;
+const NEXT_QUESTION_COUNTDOWN: number = 10000;
+const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
+const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
 export class Game {
   static Games: {
     [key: string]: Game;
@@ -146,6 +145,8 @@ export class Game {
 
     s.join(this.id);
 
+    clearTimeout(this.killEmptyGamesCountDown);
+
     this.updateGameInfo();
   }
 
@@ -189,10 +190,14 @@ export class Game {
       if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
         this.stopLobbyCountDown();
       }
+    }
 
-      if (player.socketId in io.sockets.sockets) {
-        io.sockets.sockets[player.socketId].leave(this.id);
-      }
+    if (
+      (this.id && !Object.keys(this.players).length) ||
+      player.socketId in io.sockets.sockets
+    ) {
+      this.startKillGame(this.id);
+      io.sockets.sockets[player.socketId].leave(this.id);
     }
 
     this.updateGameInfo();
@@ -255,17 +260,10 @@ export class Game {
 
   startKillGame(gameId: string) {
     this.killEmptyGamesCountDown = setTimeout(() => {
-      io.to(this.id).emit(GAME_IS_KILLED, {
-        message: `game #${this.id} was destroyed cuz all players have left`,
-      });
-
-      if (this.id in io.sockets.sockets) {
-        io.sockets.sockets[this.id].leave(this.id);
-      }
-
       delete Game.Games[gameId];
 
       Game.updateGames();
+      this.updateGameInfo();
     }, ROUND_END_RESULTS_VISIBILITY_TIME);
   }
 
@@ -329,15 +327,6 @@ export class Game {
 
   updateGameInfo() {
     const gameInfo = this.getGameInfoPayload();
-
-    if (this.gameStage === GameStages.LOBBY) {
-      clearTimeout(this.kickPlayersFromGameCountDown);
-      clearTimeout(this.killEmptyGamesCountDown);
-
-      if (this.id && !Object.keys(this.players).length) {
-        this.startKillGame(this.id);
-      }
-    }
 
     if (
       this.gameStage === GameStages.QUESTIONS ||

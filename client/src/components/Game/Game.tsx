@@ -137,8 +137,6 @@ const Game = () => {
   const totalPlayers = gameInfo.players.length;
   const readyPlayers = gameInfo.players.filter(p => p.ready).length;
 
-  console.log('gameStage: ', gameInfo.gameStage);
-
   if (!player) return null;
 
   return (
