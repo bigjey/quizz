@@ -192,12 +192,12 @@ export class Game {
       }
     }
 
-    if (
-      (this.id && !Object.keys(this.players).length) ||
-      player.socketId in io.sockets.sockets
-    ) {
-      this.startKillGame(this.id);
+    if (player.socketId in io.sockets.sockets) {
       io.sockets.sockets[player.socketId].leave(this.id);
+    }
+
+    if (this.id && !Object.keys(this.players).length) {
+      this.startKillGame(this.id);
     }
 
     this.updateGameInfo();
