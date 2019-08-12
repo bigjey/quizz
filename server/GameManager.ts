@@ -30,7 +30,7 @@ function playerBySocket(socketId: string | null) {
 }
 
 function gameByPlayer(id: string) {
-  return Object.values(Game.Games).find((g: Game) => g.players[id]);
+  return Object.values(Game.Games).find((g: Game) => g['players'][id]);
 }
 
 export const addSocketEvents = () => {
@@ -93,14 +93,14 @@ export const addSocketEvents = () => {
       Game.updateGames();
     };
 
-    const onNewGame = (gameConfig: IGameConfig) => {
+    const onNewGame = async (gameConfig: IGameConfig) => {
       const p = playerBySocket(socket.id);
 
       if (!p) {
         return;
       }
 
-      const game = new Game(gameConfig, p.id);
+      const game = await new Game(gameConfig, p.id);
 
       Game.Games[game.id] = game;
 
