@@ -6,7 +6,8 @@
     "preserveConstEnums": true,
     "sourceMap": false,
     "esModuleInterop": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "jsx": "react"
   },
   "include": ["./server/index.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
