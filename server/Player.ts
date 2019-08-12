@@ -27,13 +27,4 @@ export class Player {
     this.name = p.name;
     this.socketId = s.id;
   }
-
-  static getPlayerInfo(pId: string) {
-    const player = this.Players[pId];
-
-    return {
-      id: player.id,
-      name: player.name,
-    };
-  }
 }

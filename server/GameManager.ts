@@ -51,7 +51,7 @@ export const addSocketEvents = () => {
       const game = gameByPlayer(p.id);
 
       if (game) {
-        game.addPlayer(p.id, socket);
+        game.addPlayer(p.id);
         socket.emit(JOINED_GAME, game.id);
       }
 
@@ -60,6 +60,7 @@ export const addSocketEvents = () => {
         delete _disconnections[p.id];
 
         game.removeDisconnectedPlayer(p.id);
+        game.updateGameInfo();
       }
 
       updatePlayers();
@@ -85,6 +86,7 @@ export const addSocketEvents = () => {
 
         _disconnections[p.id] = timerID;
         game.addDisconnectedPlayer(p.id);
+        game.updateGameInfo();
       }
 
       updatePlayers();
@@ -98,9 +100,12 @@ export const addSocketEvents = () => {
         return;
       }
 
-      const game = new Game(gameConfig, p, socket);
+      const game = new Game(gameConfig, p.id);
 
       Game.Games[game.id] = game;
+
+      game.addPlayer(p.id);
+      game.updateGameInfo();
 
       socket.emit(JOINED_GAME, game.id);
 
@@ -116,7 +121,8 @@ export const addSocketEvents = () => {
         return;
       }
 
-      game.addPlayer(player.id, socket);
+      game.addPlayer(player.id);
+      game.updateGameInfo();
       socket.emit(JOINED_GAME, game.id);
 
       updatePlayers();
@@ -132,6 +138,7 @@ export const addSocketEvents = () => {
       }
 
       game.removePlayerFromGame(player.id);
+      game.updateGameInfo();
 
       updatePlayers();
       Game.updateGames();
@@ -146,6 +153,7 @@ export const addSocketEvents = () => {
       }
 
       game.togglePlayerReady(player.id);
+      game.updateGameInfo();
 
       updatePlayers();
       Game.updateGames();
@@ -161,6 +169,7 @@ export const addSocketEvents = () => {
       if (!game) return;
 
       game.registerAnswer(player.id, answer);
+      game.updateGameInfo();
     };
 
     socket.on(DISCONNECT, onDisconnect);

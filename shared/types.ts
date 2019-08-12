@@ -1,4 +1,4 @@
-type GameDifficulty = 'easy' | 'medium' | 'hard';
+export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface GamesListItem {
   id: string;
