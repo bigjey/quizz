@@ -88,7 +88,7 @@ export class Game {
   private hostId: string;
   private sanitizedQuestion: QuestionForGame;
 
-  private gameStage: GameStages = GameStages.LOBBY;
+  public gameStage: GameStages = GameStages.LOBBY;
 
   private players: GamePlayers = {};
   private config: IGameConfig;
