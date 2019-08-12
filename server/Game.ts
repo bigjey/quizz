@@ -15,14 +15,14 @@ import {
   IGameConfig,
   QuestionForGame,
 } from '../shared/types';
-import { shuffle } from '../shared/utils/shuffle';
+import { sanitizeQuestion } from './utils';
 
-interface Option {
+export interface Option {
   text: string;
   correct: boolean;
 }
 
-interface Question {
+export interface Question {
   category: string;
   type: string;
   difficulty: string;
@@ -42,73 +42,76 @@ const addPlayerInfo = (p: GamePlayer) => {
   };
 };
 
-const NEXT_QUESTION_COUNTDOWN: number = 10000;
-const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
-const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
+export const NEXT_QUESTION_COUNTDOWN: number = 10000;
+export const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
+export const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
+
+const isVisibleGame = (game: Game): boolean => {
+  if (game['gameStage'] !== GameStages.LOBBY) return false;
+
+  if (Object.keys(game['players']).length === game['config'].maxPlayers)
+    return false;
+
+  return true;
+};
+
+const sanitizeGameForList = (game: Game): GamesListItem => ({
+  id: game['id'],
+  hostName: Player.Players[game['hostId']]
+    ? Player.Players[game['hostId']].name
+    : null,
+  playersCount: Object.keys(game['players']).length,
+  config: game['config'],
+});
+
 export class Game {
-  static Games: {
+  public static Games: {
     [key: string]: Game;
   } = {};
 
-  static updateGames(socket?: Socket) {
-    const payload: GamesDataPayload = Object.values(this.Games)
-      .filter(
-        (g): boolean => {
-          if (g.gameStage !== GameStages.LOBBY) return false;
+  public static getVisibleGames(): GamesDataPayload {
+    return Object.values(this.Games)
+      .filter(isVisibleGame)
+      .map(sanitizeGameForList);
+  }
 
-          if (Object.keys(g.players).length === MAX_PLAYERS) return false;
-
-          return true;
-        }
-      )
-      .map(
-        (g: Game): GamesListItem => ({
-          id: g.id,
-          hostName: Player.Players[g.hostId]
-            ? Player.Players[g.hostId].name
-            : null,
-          playersCount: Object.keys(g.players).length,
-          config: g.config,
-        })
-      );
-
+  public static updateGames(socket?: Socket) {
     if (socket) {
-      socket.emit(GAMES_DATA, payload);
+      socket.emit(GAMES_DATA, this.getVisibleGames());
     } else {
-      io.emit(GAMES_DATA, payload);
+      io.emit(GAMES_DATA, this.getVisibleGames());
     }
   }
 
-  hostId: string;
-  sanitizedQuestion: QuestionForGame;
+  public id: string = null;
 
-  id: string = null;
-  gameStage: GameStages = GameStages.LOBBY;
+  private hostId: string;
+  private sanitizedQuestion: QuestionForGame;
 
-  players: GamePlayers = {};
-  lobbyCountDown: NodeJS.Timeout;
-  config: IGameConfig;
+  private gameStage: GameStages = GameStages.LOBBY;
 
-  currentQuestion: number = 0;
-  questions: Question[] = null;
+  private players: GamePlayers = {};
+  private config: IGameConfig;
 
-  questionCountdown: NodeJS.Timeout;
-  questionResultsCountdown: NodeJS.Timeout;
+  private currentQuestion: number = 0;
+  private questions: Question[] = null;
 
-  constructor(gConfig: IGameConfig, p: Player, s: Socket) {
+  private lobbyCountDown: NodeJS.Timeout = null;
+  private questionCountdown: NodeJS.Timeout = null;
+  private questionResultsCountdown: NodeJS.Timeout = null;
+
+  public constructor(gConfig: IGameConfig, hostId: string) {
     this.id = Math.random()
       .toString()
       .slice(2, 7);
 
     this.config = gConfig;
+    this.hostId = hostId;
+
     this.setupGame();
-
-    this.hostId = p.id;
-
-    this.addPlayer(p.id, s);
   }
 
-  async setupGame() {
+  private async setupGame() {
     const { category, numOfQuestions, difficulty } = this.config;
 
     try {
@@ -132,91 +135,84 @@ export class Game {
     }
   }
 
-  addPlayer(id: string, s: Socket) {
-    this.players[id] = new GamePlayer(id);
+  public addPlayer(pId: string) {
+    this.players[pId] = new GamePlayer(pId);
 
-    s.join(this.id);
-
-    this.updateGameInfo();
-  }
-
-  removePlayer(id: string) {
-    delete this.players[id];
-
-    if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
-      this.stopLobbyCountDown();
+    const player = Player.Players[pId];
+    if (!player) {
+      return;
     }
 
-    this.updateGameInfo();
+    const socket = io.sockets.sockets[player.socketId];
+    if (!socket) {
+      return;
+    }
+
+    socket.join(this.id);
   }
 
-  addDisconnectedPlayer(id: string) {
+  public addDisconnectedPlayer(id: string) {
     this.players[id].disconnected = true;
     this.togglePlayerReady(id, false);
-
-    if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
-      this.stopLobbyCountDown();
-    }
-
-    this.updateGameInfo();
   }
 
-  removeDisconnectedPlayer(id: string) {
+  public removeDisconnectedPlayer(id: string) {
     this.players[id].disconnected = false;
-
-    this.updateGameInfo();
   }
 
-  removePlayerFromGame(id: string) {
+  public removePlayerFromGame(id: string) {
     delete this.players[id];
 
     const player = Player.Players[id];
 
-    if (player) {
-      io.to(this.id).emit(PLAYER_LEFT, {
-        message: `player with nick ${this.addPlayer.name} has left the game`,
-      });
-
-      if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
-        this.stopLobbyCountDown();
-      }
+    if (!player) {
+      return;
     }
 
-    this.updateGameInfo();
+    io.to(this.id).emit(PLAYER_LEFT, {
+      message: `player with nick ${this.addPlayer.name} has left the game`,
+    });
+
+    this.stopLobbyCountDown();
   }
 
-  startLobbyCountDown() {
-    const isEverybodyReady = Object.values(this.players).every(
-      player => player.ready
-    );
+  private isEverybodyReady(): boolean {
+    return Object.values(this.players).every(player => player.ready);
+  }
 
-    if (!isEverybodyReady) return;
-
+  private startLobbyCountDown() {
     this.gameStage = GameStages.LOBBY_COUNTDOWN;
 
-    this.lobbyCountDown = setTimeout(() => {
-      this.nextQuestion();
-      this.updateGameInfo();
-    }, COUNTDOWN_TO_GAME_START);
+    this.lobbyCountDown = setTimeout(
+      this.afterLobbyCountdown,
+      COUNTDOWN_TO_GAME_START
+    );
   }
 
-  stopLobbyCountDown() {
+  private afterLobbyCountdown = () => {
+    this.nextQuestion();
+    this.updateGameInfo();
+  };
+
+  private stopLobbyCountDown() {
     if (this.lobbyCountDown) {
       Object.values(this.players).forEach(p => (p.ready = false));
       this.gameStage = GameStages.LOBBY;
-      clearTimeout(this.lobbyCountDown);
     }
+
+    clearTimeout(this.lobbyCountDown);
+    this.lobbyCountDown = null;
   }
 
-  nextQuestion() {
+  private nextQuestion() {
     if (this.currentQuestion === this.questions.length) {
       this.gameStage = GameStages.GAME_OVER;
     } else {
       this.currentQuestion++;
-      this.sanitizedQuestion = this.sanitizeQuestion(
+      this.gameStage = GameStages.QUESTIONS;
+      this.sanitizedQuestion = sanitizeQuestion(
         this.questions[this.currentQuestion - 1]
       );
-      this.gameStage = GameStages.QUESTIONS;
       this.questionCountdown = setTimeout(() => {
         this.gameStage = GameStages.INTERMEDIATE_RESULTS;
         this.startIntermediateResultsCountdown();
@@ -225,7 +221,7 @@ export class Game {
     }
   }
 
-  startIntermediateResultsCountdown() {
+  private startIntermediateResultsCountdown() {
     this.questionResultsCountdown = setTimeout(() => {
       this.gameStage = GameStages.ROUND_END_RESULTS;
       this.startRoundEndResultsCountdown();
@@ -233,26 +229,27 @@ export class Game {
     }, INTERMEDIATE_RESULTS_VISIBILITY_TIME);
   }
 
-  startRoundEndResultsCountdown() {
+  private startRoundEndResultsCountdown() {
     this.questionResultsCountdown = setTimeout(() => {
       this.nextQuestion();
       this.updateGameInfo();
     }, ROUND_END_RESULTS_VISIBILITY_TIME);
   }
 
-  togglePlayerReady(id: string, ready: boolean = !this.players[id].ready) {
+  public togglePlayerReady(
+    id: string,
+    ready: boolean = !this.players[id].ready
+  ) {
     this.players[id].ready = ready;
 
-    if (this.gameStage === GameStages.LOBBY) {
+    if (this.gameStage === GameStages.LOBBY && this.isEverybodyReady()) {
       this.startLobbyCountDown();
     } else if (this.gameStage === GameStages.LOBBY_COUNTDOWN) {
       this.stopLobbyCountDown();
     }
-
-    this.updateGameInfo();
   }
 
-  isEverybodyAnsweredInAdvance() {
+  private isEverybodyAnsweredInAdvance() {
     return Object.values(this.players).every(player => {
       const currAnswer = this.players[player.id].answers[this.currentQuestion];
 
@@ -260,62 +257,61 @@ export class Game {
     });
   }
 
-  registerAnswer(pId: string, answer: string) {
+  public registerAnswer(pId: string, answer: string) {
     this.players[pId].answers[this.currentQuestion] = answer;
 
     if (this.isEverybodyAnsweredInAdvance()) {
       clearTimeout(this.questionCountdown);
+      this.questionCountdown = null;
       this.gameStage = GameStages.INTERMEDIATE_RESULTS;
       this.startIntermediateResultsCountdown();
+      this.updateGameInfo();
     }
-
-    this.updateGameInfo();
   }
 
-  sanitizeQuestion(q: Question): QuestionForGame {
-    const answers = shuffle([q.correct_answer, ...q.incorrect_answers]);
-
-    return {
-      question: q.question,
-      answers,
-    };
-  }
-
-  checkIfAnswerCorrect(answer: string): boolean {
+  private checkIfAnswerCorrect(answer: string): boolean {
     return this.questions.some(q => q.correct_answer === answer);
   }
 
-  updateGameInfo() {
-    const gameInfo = this.getGameInfoPayload();
+  public updateGameInfo() {
+    io.to(this.id).emit(GAME_INFO, this.getGameInfoPayload());
+  }
+
+  public getGameInfoPayload(): GameInfoPayload {
+    const payload: GameInfoPayload = {
+      id: this.id,
+      players: Object.values(this.players).map(addPlayerInfo),
+      gameStage: this.gameStage,
+    };
 
     if (
       this.gameStage === GameStages.QUESTIONS ||
       this.gameStage === GameStages.INTERMEDIATE_RESULTS
     ) {
-      gameInfo.question = this.sanitizedQuestion;
-      gameInfo.questionNumber = this.currentQuestion;
+      payload.question = this.sanitizedQuestion;
+      payload.questionNumber = this.currentQuestion;
     }
 
     if (this.gameStage === GameStages.INTERMEDIATE_RESULTS) {
-      gameInfo.correctAnswer = this.questions[
+      payload.correctAnswer = this.questions[
         this.currentQuestion - 1
       ].correct_answer;
-      gameInfo.questionNumber = this.currentQuestion;
+      payload.questionNumber = this.currentQuestion;
     }
 
     if (this.gameStage === GameStages.ROUND_END_RESULTS) {
-      gameInfo.players.forEach(p => {
+      payload.players.forEach(p => {
         const text = this.players[p.id].answers[this.currentQuestion];
         p.answer = {
           text,
           isCorrect: this.checkIfAnswerCorrect(text),
         };
       });
-      gameInfo.questionNumber = this.currentQuestion;
+      payload.questionNumber = this.currentQuestion;
     }
 
     if (this.gameStage === GameStages.GAME_OVER) {
-      gameInfo.results = Object.values(this.players)
+      payload.results = Object.values(this.players)
         .map(player => {
           const name = Player.Players[player.id].name;
           return {
@@ -330,16 +326,6 @@ export class Game {
         })
         .sort((pr1, pr2) => pr2.score - pr1.score);
     }
-
-    io.to(this.id).emit(GAME_INFO, gameInfo);
-  }
-
-  getGameInfoPayload(): GameInfoPayload {
-    const payload = {
-      id: this.id,
-      players: Object.values(this.players).map(addPlayerInfo),
-      gameStage: this.gameStage,
-    };
 
     return payload;
   }
