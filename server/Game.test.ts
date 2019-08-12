@@ -17,67 +17,24 @@ import { Player } from './Player';
 import { Socket as createSocket } from './__mocks__/socket';
 import { PLAYER_LEFT, GAME_INFO, GAMES_DATA } from '../shared/server-events';
 
-const MOCKED_TRIVIA_API_RESPONSE = {
-  data: {
-    response_code: 0,
-    results: [
-      {
-        category: 'Entertainment: Video Games',
-        type: 'multiple',
-        difficulty: 'medium',
-        question:
-          'In Fallout 4, which type of power armor is first encountered in the early mission &quot;When Freedom Calls&quot; in a crashed Vertibird?',
-        correct_answer: 'T-45',
-        incorrect_answers: ['T-51', 'T-60', 'X-01'],
-      },
-      {
-        category: 'Entertainment: Music',
-        type: 'multiple',
-        difficulty: 'medium',
-        question:
-          'Which song in Drake&#039;s &quot;Views&quot; features Future?',
-        correct_answer: 'Grammys',
-        incorrect_answers: ['Too Good', 'Faithful', 'Pop Style'],
-      },
-    ],
-  },
-};
+import {
+  socket1,
+  socket2,
+  player1,
+  player2,
+  normalGameConfig,
+  MOCKED_TRIVIA_API_RESPONSE,
+} from './__mocks__/fixtures';
 
 jest.mock('./socketServer.ts');
 jest.mock('axios');
 
 jest.useFakeTimers();
 
-const normalGameConfig: IGameConfig = {
-  name: 'new game',
-  password: null,
-  category: null,
-  difficulty: null,
-  numOfQuestions: 2,
-  maxPlayers: 2,
-};
-
-// mock players and sockets
-const player1Data = {
-  id: '1',
-  name: 'bigjey',
-};
-
-const player2Data = {
-  id: '222',
-  name: 'other_player',
-};
-
-const socket1 = createSocket(player1Data.id) as any;
 io.sockets.sockets[socket1.id] = socket1;
-
-const socket2 = createSocket(player2Data.id) as any;
 io.sockets.sockets[socket2.id] = socket2;
 
-const player1 = new Player(socket1, player1Data) as any;
 Player.Players[player1.id] = player1;
-
-const player2 = new Player(socket2, player2Data) as any;
 Player.Players[player2.id] = player2;
 
 beforeEach(() => {

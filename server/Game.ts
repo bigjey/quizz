@@ -15,7 +15,7 @@ import {
   IGameConfig,
   QuestionForGame,
 } from '../shared/types';
-import { sanitizeQuestion } from './utils';
+import { sanitizeQuestion, isVisibleGame, sanitizeGameForList } from './utils';
 
 export interface Option {
   text: string;
@@ -45,24 +45,6 @@ const addPlayerInfo = (p: GamePlayer) => {
 export const NEXT_QUESTION_COUNTDOWN: number = 10000;
 export const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
 export const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
-
-const isVisibleGame = (game: Game): boolean => {
-  if (game['gameStage'] !== GameStages.LOBBY) return false;
-
-  if (Object.keys(game['players']).length === game['config'].maxPlayers)
-    return false;
-
-  return true;
-};
-
-const sanitizeGameForList = (game: Game): GamesListItem => ({
-  id: game['id'],
-  hostName: Player.Players[game['hostId']]
-    ? Player.Players[game['hostId']].name
-    : null,
-  playersCount: Object.keys(game['players']).length,
-  config: game['config'],
-});
 
 export class Game {
   public static Games: {

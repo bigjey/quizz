@@ -15,6 +15,7 @@ import {
 
 import { Player, NewPlayer } from './Player';
 import { Game } from './Game';
+import { getPlayerBySocketId, getGameByPlayerId } from './utils';
 
 interface Idisconnections {
   [pId: string]: NodeJS.Timeout;
@@ -22,16 +23,6 @@ interface Idisconnections {
 
 const _disconnections: Idisconnections = {};
 const RECONNECTION_TIME_LIMIT: number = 10000;
-
-function playerBySocket(socketId: string | null) {
-  return Object.values(Player.Players).find((p: Player) => {
-    return p.socketId === socketId;
-  });
-}
-
-function gameByPlayer(id: string) {
-  return Object.values(Game.Games).find((g: Game) => g['players'][id]);
-}
 
 export const addSocketEvents = () => {
   function updatePlayers() {
@@ -48,7 +39,7 @@ export const addSocketEvents = () => {
 
     const onNewPlayer = (p: NewPlayer) => {
       Player.Players[p.id] = new Player(socket, p);
-      const game = gameByPlayer(p.id);
+      const game = getGameByPlayerId(p.id);
 
       if (game) {
         game.addPlayer(p.id);
@@ -68,13 +59,13 @@ export const addSocketEvents = () => {
     };
 
     const onDisconnect = () => {
-      const p = playerBySocket(socket.id);
+      const p = getPlayerBySocketId(socket.id);
 
       if (!p) {
         return;
       }
 
-      const game = gameByPlayer(p.id);
+      const game = getGameByPlayerId(p.id);
 
       if (game) {
         const timerID = setTimeout(() => {
@@ -94,7 +85,7 @@ export const addSocketEvents = () => {
     };
 
     const onNewGame = async (gameConfig: IGameConfig) => {
-      const p = playerBySocket(socket.id);
+      const p = getPlayerBySocketId(socket.id);
 
       if (!p) {
         return;
@@ -115,7 +106,7 @@ export const addSocketEvents = () => {
 
     const onJoinGame = (id: string) => {
       const game = Game.Games[id];
-      const player = playerBySocket(socket.id);
+      const player = getPlayerBySocketId(socket.id);
 
       if (!game || !player || game.gameStage !== GameStages.LOBBY) {
         return;
@@ -131,7 +122,7 @@ export const addSocketEvents = () => {
 
     const onLeaveGame = (id: string) => {
       const game = Game.Games[id];
-      const player = playerBySocket(socket.id);
+      const player = getPlayerBySocketId(socket.id);
 
       if (!game || !player) {
         return;
@@ -146,7 +137,7 @@ export const addSocketEvents = () => {
 
     const onToggleReady = (id: string) => {
       const game = Game.Games[id];
-      const player = playerBySocket(socket.id);
+      const player = getPlayerBySocketId(socket.id);
 
       if (!game || !player) {
         return;
@@ -160,11 +151,11 @@ export const addSocketEvents = () => {
     };
 
     const onPlayerAnswer = (answer: string) => {
-      const player = playerBySocket(socket.id);
+      const player = getPlayerBySocketId(socket.id);
 
       if (!player) return;
 
-      const game = gameByPlayer(player.id);
+      const game = getGameByPlayerId(player.id);
 
       if (!game) return;
 
