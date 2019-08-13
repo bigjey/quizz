@@ -9,7 +9,16 @@ import {
   player1,
   player2,
   normalGameConfig,
+  MOCKED_TRIVIA_API_RESPONSE,
 } from './__mocks__/fixtures';
+import axios from 'axios';
+
+jest.mock('./socketServer.ts');
+jest.mock('axios');
+
+(axios.get as any).mockReturnValue(MOCKED_TRIVIA_API_RESPONSE);
+
+jest.useFakeTimers();
 
 jest.mock('./socketServer.ts');
 

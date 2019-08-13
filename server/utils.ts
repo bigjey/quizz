@@ -3,14 +3,6 @@ import axios from 'axios';
 import { QuestionForGame, GameStages, GamesListItem } from '../shared/types';
 import { Player } from './Player';
 import { Question, Game } from './Game';
-import { MOCKED_TRIVIA_API_RESPONSE } from './__mocks__/fixtures';
-
-jest.mock('./socketServer.ts');
-jest.mock('axios');
-
-(axios.get as any).mockReturnValue(MOCKED_TRIVIA_API_RESPONSE);
-
-jest.useFakeTimers();
 
 export function getPlayerBySocketId(socketId: string): Player | null {
   const player = Object.values(Player.Players).find((p: Player) => {
