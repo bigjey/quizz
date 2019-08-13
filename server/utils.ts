@@ -3,6 +3,13 @@ import axios from 'axios';
 import { QuestionForGame, GameStages, GamesListItem } from '../shared/types';
 import { Player } from './Player';
 import { Question, Game } from './Game';
+import { io } from './socketServer';
+
+export function getSocketById(socketId: string) {
+  const socket = io.sockets.sockets[socketId];
+
+  return socket;
+}
 
 export function getPlayerBySocketId(socketId: string): Player | null {
   const player = Object.values(Player.Players).find((p: Player) => {
