@@ -8,7 +8,7 @@ import {
   TOGGLE_READY,
   PLAYER_ANSWER,
 } from '../../../../shared/client-events';
-import { PLAYER_LEFT } from '../../../../shared/server-events';
+import { PLAYER_LEFT, KILL_GAME } from '../../../../shared/server-events';
 import { useAppState } from '../../hooks/useAppState';
 import { PlayerInfoContainer } from '../PlayerInfo';
 import { Button, CircleProgress, Countdown } from '../UI';
@@ -107,7 +107,18 @@ const Game = () => {
     const onPlayerLeft = message => {
       console.log(message);
     };
+
+    const onKillGame = message => {
+      console.log('It is all over ', message);
+      setAppState({
+        ...appState,
+        gameId: null,
+        gameInfo: null,
+      });
+    };
+
     socket.on(PLAYER_LEFT, onPlayerLeft);
+    socket.on(KILL_GAME, onKillGame);
 
     return () => {
       socket.off(PLAYER_LEFT, onPlayerLeft);

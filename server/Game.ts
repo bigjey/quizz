@@ -6,7 +6,12 @@ import { Player } from './Player';
 import { io } from './socketServer';
 
 import { COUNTDOWN_TO_GAME_START, MAX_PLAYERS } from '../shared/constants';
-import { GAME_INFO, PLAYER_LEFT, GAMES_DATA } from '../shared/server-events';
+import {
+  GAME_INFO,
+  PLAYER_LEFT,
+  GAMES_DATA,
+  KILL_GAME,
+} from '../shared/server-events';
 import {
   GameInfoPayload,
   GamePlayer,
@@ -15,7 +20,12 @@ import {
   IGameConfig,
   QuestionForGame,
 } from '../shared/types';
-import { sanitizeQuestion, isVisibleGame, sanitizeGameForList } from './utils';
+import {
+  sanitizeQuestion,
+  isVisibleGame,
+  sanitizeGameForList,
+  getSocketById,
+} from './utils';
 
 export interface Option {
   text: string;
@@ -45,6 +55,8 @@ const addPlayerInfo = (p: GamePlayer) => {
 export const NEXT_QUESTION_COUNTDOWN: number = 10000;
 export const INTERMEDIATE_RESULTS_VISIBILITY_TIME: number = 4000;
 export const ROUND_END_RESULTS_VISIBILITY_TIME: number = 4000;
+export const KILL_GAME_TIME: number = 4000;
+export const KICK_ALL_PLAYERS_TIME: number = 4000;
 
 export class Game {
   public static Games: {
@@ -81,6 +93,8 @@ export class Game {
   private lobbyCountDown: NodeJS.Timeout = null;
   private questionCountdown: NodeJS.Timeout = null;
   private questionResultsCountdown: NodeJS.Timeout = null;
+  private kickPlayersFromGameCountdown: NodeJS.Timeout = null;
+  private killEmptyGamesCountdown: NodeJS.Timeout = null;
 
   public constructor(gConfig: IGameConfig, hostId: string) {
     this.id = Math.random()
@@ -125,10 +139,13 @@ export class Game {
       return;
     }
 
-    const socket = io.sockets.sockets[player.socketId];
+    const socket = getSocketById(player.socketId);
     if (!socket) {
       return;
     }
+
+    clearTimeout(this.killEmptyGamesCountdown);
+    this.killEmptyGamesCountdown = null;
 
     socket.join(this.id);
   }
@@ -152,8 +169,16 @@ export class Game {
     }
 
     io.to(this.id).emit(PLAYER_LEFT, {
-      message: `player with nick ${this.addPlayer.name} has left the game`,
+      message: `player with nick ${player.name} has left the game`,
     });
+
+    if (player.socketId in io.sockets.sockets) {
+      io.sockets.sockets[player.socketId].leave(this.id);
+    }
+
+    if (!Object.keys(this.players).length) {
+      this.startKillGame(this.id);
+    }
 
     this.stopLobbyCountDown();
   }
@@ -172,6 +197,7 @@ export class Game {
   }
 
   private afterLobbyCountdown = () => {
+    this.lobbyCountDown = null;
     this.nextQuestion();
     this.updateGameInfo();
   };
@@ -189,6 +215,7 @@ export class Game {
   private nextQuestion() {
     if (this.currentQuestion === this.questions.length) {
       this.gameStage = GameStages.GAME_OVER;
+      this.startKickAllPlayersCountdown();
     } else {
       this.currentQuestion++;
       this.gameStage = GameStages.QUESTIONS;
@@ -216,6 +243,32 @@ export class Game {
       this.nextQuestion();
       this.updateGameInfo();
     }, ROUND_END_RESULTS_VISIBILITY_TIME);
+  }
+
+  private startKillGame(gameId: string) {
+    this.killEmptyGamesCountdown = setTimeout(() => {
+      delete Game.Games[gameId];
+
+      Game.updateGames();
+      this.updateGameInfo();
+    }, KILL_GAME_TIME);
+  }
+
+  private startKickAllPlayersCountdown() {
+    this.kickPlayersFromGameCountdown = setTimeout(() => {
+      Object.values(this.players).forEach((gamePlayer: GamePlayer) => {
+        const player = Player.Players[gamePlayer.id];
+        const socket = getSocketById(player.socketId);
+
+        this.removePlayerFromGame(gamePlayer.id);
+
+        socket.emit(KILL_GAME, {
+          message: `sorry dude, but this game ${
+            this.id
+          } is over for you and your friends`,
+        });
+      });
+    }, KICK_ALL_PLAYERS_TIME);
   }
 
   public togglePlayerReady(

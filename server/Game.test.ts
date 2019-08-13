@@ -5,6 +5,8 @@ import {
   NEXT_QUESTION_COUNTDOWN,
   ROUND_END_RESULTS_VISIBILITY_TIME,
   INTERMEDIATE_RESULTS_VISIBILITY_TIME,
+  KILL_GAME_TIME,
+  KICK_ALL_PLAYERS_TIME,
 } from './Game';
 import { io } from './socketServer';
 import {
@@ -13,9 +15,14 @@ import {
   GameDifficulty,
   GameStages,
 } from '../shared/types';
-import { Player } from './Player';
+import { Player, Players } from './Player';
 import { Socket as createSocket } from './__mocks__/socket';
-import { PLAYER_LEFT, GAME_INFO, GAMES_DATA } from '../shared/server-events';
+import {
+  PLAYER_LEFT,
+  GAME_INFO,
+  GAMES_DATA,
+  KILL_GAME,
+} from '../shared/server-events';
 
 import {
   socket1,
@@ -244,8 +251,7 @@ describe('Game', () => {
       expect(game['players']).not.toHaveProperty(player1.id);
     });
 
-    // this one fails
-    xit('should notify players in game', async () => {
+    it('should notify players in game', async () => {
       const game = await new Game(normalGameConfig, player1.id);
 
       game.addPlayer(player1.id);
@@ -273,6 +279,51 @@ describe('Game', () => {
       expect(stopLobbyCountDownSpy).toBeCalled();
     });
   });
+
+  describe('#startKillGame', () => {
+    it('should kill all games within 4 seconds of last player left the game', async () => {
+      const game = await new Game(normalGameConfig, player1.id);
+      Game.Games[game.id] = game;
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      game.addPlayer(player1.id);
+      expect(game['killEmptyGamesCountdown']).toBe(null);
+
+      game.removePlayerFromGame(player1.id);
+      expect(typeof game['killEmptyGamesCountdown']).toBe('number');
+
+      expect(setTimeoutSpy).toBeCalledWith(
+        expect.any(Function),
+        KILL_GAME_TIME
+      );
+
+      // run timer
+      expect(Game.Games).toHaveProperty(game.id);
+      jest.runOnlyPendingTimers();
+
+      // check if game was deleted
+      expect(Game.Games).not.toHaveProperty(game.id);
+    });
+
+    it('should clear killGame timeout if a player joined', async () => {
+      const game = await new Game(normalGameConfig, player1.id);
+      Game.Games[game.id] = game;
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const timeout = game['killEmptyGamesCountdown'];
+
+      game.addPlayer(player1.id);
+      game.removePlayerFromGame(player1.id);
+      game.addPlayer(player2.id);
+
+      jest.runOnlyPendingTimers();
+
+      expect(Game.Games).toHaveProperty(game.id);
+      expect(clearTimeoutSpy).toBeCalledWith(timeout);
+      expect(game['killEmptyGamesCountdown']).toBe(null);
+    });
+  });
+
+  describe('#startKickAllPlayersCountdown', () => {});
 
   describe('#togglePlayerReady', () => {
     describe('changes ready status of provided player', () => {
@@ -692,5 +743,66 @@ describe('Game', () => {
     });
   });
 
-  describe('Phase: GAME_OVER', () => {});
+  describe('Phase: GAME_OVER', () => {
+    let game: Game;
+
+    beforeEach(async () => {
+      game = await new Game(normalGameConfig, player1.id);
+
+      game.addPlayer(player1.id);
+      game.addPlayer(player2.id);
+
+      game.togglePlayerReady(player1.id);
+      game.togglePlayerReady(player2.id);
+
+      // LOBBY -> QUESTIONS
+      jest.runOnlyPendingTimers();
+
+      game.registerAnswer(player1.id, 'a');
+
+      // QUESTIONS -> INTERMEDIATE_RESULTS
+      jest.runOnlyPendingTimers();
+
+      // INTERMEDIATE_RESULTS -> ROUND_END_RESULTS
+      jest.runOnlyPendingTimers();
+
+      // ROUND_END_RESULTS -> QUESTIONS (2)
+      jest.runOnlyPendingTimers();
+      // QUESTIONS (2) -> INTERMEDIATE_RESULTS
+      jest.runOnlyPendingTimers();
+      // INTERMEDIATE_RESULTS -> ROUND_END_RESULTS
+      jest.runOnlyPendingTimers();
+    });
+
+    it('expect to kick all players from game after game over', async () => {
+      const kickAllPlayersTimeout = jest.spyOn(global, 'setTimeout');
+
+      // ROUND_END_RESULTS -> GAME_OVER
+      jest.runOnlyPendingTimers();
+
+      expect(kickAllPlayersTimeout).toBeCalledWith(
+        expect.any(Function),
+        KICK_ALL_PLAYERS_TIME
+      );
+
+      // GAME OVER -> KILL GAME
+      jest.runOnlyPendingTimers();
+
+      expect(Object.keys(game['players']).length).toEqual(0);
+
+      expect(socket1.emit).toBeCalledWith(KILL_GAME, {
+        message: `sorry dude, but this game ${
+          game.id
+        } is over for you and your friends`,
+      });
+
+      expect(socket2.emit).toBeCalledWith(KILL_GAME, {
+        message: `sorry dude, but this game ${
+          game.id
+        } is over for you and your friends`,
+      });
+
+      expect(Game.Games).not.toHaveProperty(game.id);
+    });
+  });
 });
